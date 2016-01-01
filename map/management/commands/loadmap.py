@@ -1,7 +1,8 @@
 from django.core.management.base import BaseCommand, CommandError
 from map.models import *
 
-import requests
+import aiohttp
+import asyncio
 import re
 import traceback
 
@@ -13,18 +14,31 @@ class Command(BaseCommand):
 
     # retrieve updated data
     def load_data(self, endpoints, action):
-        s = requests.Session()
-        for endpoint in endpoints:
+        loop = asyncio.get_event_loop()
+        session = aiohttp.ClientSession(loop=loop)
+        max_requests = asyncio.Semaphore(20)
+
+        async def load(endpoint):
             url = API_URL + endpoint
-            self.stdout.write('Load data from %s' % url)
-            try:
-                r = s.get(url)
-                r.raise_for_status()
-                data = r.json()
-                action(data, url)
-            except Exception as ex:
-                self.stderr.write('Cannot load %s: %s' % (url, ex))
-                traceback.print_exc(file=self.stderr)
+            self.stdout.write('Load data from %s ...' % url)
+            while True:
+                async with max_requests:
+                    async with session.get(url, compress=True) as resp:
+                        try:
+                            if resp.status != 200:
+                                raise Exception('Error %d' % resp.status)
+                            data = await resp.json()
+                            action(data, url)
+                            self.stdout.write('...loaded data from %s' % url)
+                            break
+                        except Exception as ex:
+                            if isinstance(ex, aiohttp.errors.ServerDisconnectedError) or isinstance(ex.__cause__, aiohttp.errors.ServerDisconnectedError):
+                                continue
+                            self.stderr.write(self.style.ERROR('Cannot load %s: %s' % (url, ex)))
+                            traceback.print_exc(file=self.stderr)
+                            break
+        loop.run_until_complete(asyncio.wait([load(endpoint) for endpoint in endpoints]))
+        session.close()
 
     def handle(self, *args, **options):
         # clean the content in DB
@@ -59,21 +73,24 @@ class Command(BaseCommand):
             place = Place(name=data['vill'], url=url,
                           county=counties[data['county'][0]['id']], hundred=hundreds[data['hundred'][0]['id']])
             guess_coordinates(place, data['location'])
+            # cannot bulk insert: the Place instances could not be used as a foreign key in Settlement later
             place.save()
             for manor in data['manors']:
                 manors_to_places[manor['id']] = place
-        self.load_data(['place/' + str(id) for id in places if id < 100], load_place)
+        self.load_data(['place/' + str(id) for id in places], load_place)
 
         # and do the same for settlements with a leader
+        settlements = []
         def load_manor(manor, url):
             lord = get_lord(first(manor, 'lord86', 'lord66', 'teninchief', 'overlord66')[0])
             overlord = get_lord(first(manor, 'teninchief', 'overlord66', 'lord86', 'lord66')[0])
-            overlord.save()
-            Settlement(place=manors_to_places[manor['id']],
-                       head_of_manor=manor['headofmanor'], value=first(manor, 'value86', 'geld'),
-                       lord=lord, overlord=overlord,
-                       url=url).save()
+            settlements.append(Settlement(place=manors_to_places[manor['id']],
+                                          head_of_manor=manor['headofmanor'], value=first(manor, 'value86', 'geld'),
+                                          lord=lord, overlord=overlord,
+                                          url=url))
         self.load_data(['manor/' + str(id) for id in manors_to_places], load_manor)
+        # faster to bulk insert than to create each one
+        Settlement.objects.bulk_create(settlements)
 
         self.stdout.write(self.style.SUCCESS('Successfully loaded map data from  "%s"' % API_URL))
 
