@@ -133,7 +133,7 @@ def first(data, *fields):
             else:
                 if value:
                     return value
-    raise Exception('No %s in %s' % (' '.join(fields) in data))
+    raise Exception('No %s in %s' % (' '.join(fields), data))
 
 
 def get_lord(name):
