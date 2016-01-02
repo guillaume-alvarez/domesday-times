@@ -17,24 +17,6 @@ document.body.appendChild(renderer.view);
 var stage = new PIXI.Container();
 renderer.render(stage);
 
-var Camera = function() {
-    this.x = Number.MAX_SAFE_INTEGER;
-    this.y = Number.MAX_SAFE_INTEGER;
-    this.width = 0;
-    this.height = 0;
-};
-Camera.prototype.include = function(x, y) {
-    if (x < this.x) this.x = x;
-    else if (x - this.x > this.width) this.width = x - this.x;
-    if (y < this.y) this.y = y;
-    else if (y - this.y > this.height) this.height = y - this.y;
-};
-Camera.prototype.scale = function(renderer) {
-    scaleX = renderer.width / this.width;
-    scaleY = renderer.height / this.height;
-    return Math.min(scaleX, scaleY);
-};
-
 PIXI.loader
     .add("villageImage", villageImage)
     .add("placesJson", placesJson)
@@ -56,12 +38,12 @@ PIXI.loader
         }
 
 
-        var scale = camera.scale(renderer);
-        container.scale.x = scale;
-        container.scale.y = scale;
+        camera.init(renderer.width, renderer.height);
+        container.scale.x = camera.scale;
+        container.scale.y = camera.scale;
 
-        container.position.x = -(camera.x - 10) * scale;
-        container.position.y = -(camera.y - 10) * scale;
+        container.position.x = -(camera.x - 10) * camera.scale;
+        container.position.y = -(camera.y - 10) * camera.scale;
 
         stage.addChild(container);
         renderer.render(stage);
