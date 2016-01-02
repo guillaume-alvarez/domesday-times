@@ -1,12 +1,14 @@
 from django.core.management.base import BaseCommand, CommandError
 from map.models import *
 
+import logging
 import aiohttp
 import asyncio
 import re
 import traceback
 
 API_URL = 'http://opendomesday.org/api/1.0/'
+log = logging.getLogger(__name__)
 
 
 class Command(BaseCommand):
@@ -14,29 +16,35 @@ class Command(BaseCommand):
 
     # retrieve updated data
     def load_data(self, endpoints, action):
+        log.info('Will load %s from %s', ', '.join(endpoints), API_URL)
         loop = asyncio.get_event_loop()
         session = aiohttp.ClientSession(loop=loop)
         max_requests = asyncio.Semaphore(20)
 
         async def load(endpoint):
             url = API_URL + endpoint
-            self.stdout.write('Load data from %s ...' % url)
+            log.debug('Load data from %s ...', url)
             while True:
                 async with max_requests:
-                    async with session.get(url, compress=True) as resp:
-                        try:
-                            if resp.status != 200:
-                                raise Exception('Error %d' % resp.status)
-                            data = await resp.json()
-                            action(data, url)
-                            self.stdout.write('...loaded data from %s' % url)
-                            break
-                        except Exception as ex:
-                            if isinstance(ex, aiohttp.errors.ServerDisconnectedError) or isinstance(ex.__cause__, aiohttp.errors.ServerDisconnectedError):
-                                continue
-                            self.stderr.write(self.style.ERROR('Cannot load %s: %s' % (url, ex)))
-                            traceback.print_exc(file=self.stderr)
-                            break
+                    try:
+                        async with session.get(url, compress=True) as resp:
+                            try:
+                                if resp.status != 200:
+                                    raise Exception('Error %d' % resp.status)
+                                data = await resp.json()
+                                action(data, url)
+                                log.debug('...loaded data from %s', url)
+                                break
+                            except Exception as ex:
+                                log.exception('Cannot load %s: %s', url, ex)
+                                # help debug by reporting it in console
+                                traceback.print_exc(file=self.stderr)
+                                break
+                    except Exception as get_ex:
+                        if isinstance(get_ex, aiohttp.errors.ServerDisconnectedError) \
+                                or isinstance(get_ex.__cause__, aiohttp.errors.ServerDisconnectedError):
+                            log.warning('Failure to get %s: %s, will retry', url, get_ex)
+                            continue
         loop.run_until_complete(asyncio.wait([load(endpoint) for endpoint in endpoints]))
         session.close()
 
@@ -49,7 +57,7 @@ class Command(BaseCommand):
         # first list existing places
         places = set()
         counties = {}
-        hundreds = {}
+        hundreds = {None: None}
 
         def load_counties(data, url):
             for county in data:
@@ -71,7 +79,8 @@ class Command(BaseCommand):
                 return
 
             place = Place(name=data['vill'], url=url,
-                          county=counties[data['county'][0]['id']], hundred=hundreds[data['hundred'][0]['id']])
+                          county=counties[sub(data, 'county', 0, 'id')],
+                          hundred=hundreds[sub(data, 'hundred', 0, 'id')])
             guess_coordinates(place, data['location'])
             # cannot bulk insert: the Place instances could not be used as a foreign key in Settlement later
             place.save()
@@ -85,7 +94,7 @@ class Command(BaseCommand):
             lord = get_lord(first(manor, 'lord86', 'lord66', 'teninchief', 'overlord66')[0])
             overlord = get_lord(first(manor, 'teninchief', 'overlord66', 'lord86', 'lord66')[0])
             settlements.append(Settlement(place=manors_to_places[manor['id']],
-                                          head_of_manor=manor['headofmanor'], value=first(manor, 'value86', 'geld'),
+                                          head_of_manor=manor['headofmanor'], value=check(0.0, first, manor, 'value86', 'geld', 'villtax'),
                                           lord=lord, overlord=overlord,
                                           url=url))
         self.load_data(['manor/' + str(id) for id in manors_to_places], load_manor)
@@ -94,6 +103,25 @@ class Command(BaseCommand):
 
         self.stdout.write(self.style.SUCCESS('Successfully loaded map data from  "%s"' % API_URL))
 
+
+def check(default, func, *args):
+    try:
+        return func(args)
+    except Exception as e:
+        log.error(e)
+        return default
+
+
+def sub(data, *keys):
+    current = data
+    for k in keys:
+        try:
+            current = current[k]
+            if not current:
+                return None
+        except KeyError:
+            log.exception('Cannot get %s from %s in %s', k, current, data)
+    return current
 
 def first(data, *fields):
     for f in fields:
@@ -105,7 +133,8 @@ def first(data, *fields):
             else:
                 if value:
                     return value
-    return None
+    raise Exception('No %s in %s' % (' '.join(fields) in data))
+
 
 def get_lord(name):
     lords = Lord.objects.filter(name=name)
