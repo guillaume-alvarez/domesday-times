@@ -14,7 +14,7 @@ class Lord(models.Model):
 class Place(models.Model):
     name = models.CharField(max_length=128)
     county = models.CharField(max_length=128)
-    hundred = models.CharField(max_length=128)
+    hundred = models.CharField(max_length=128, null=True)
     longitude = models.DecimalField(decimal_places=10, max_digits=20)
     latitude = models.DecimalField(decimal_places=10, max_digits=20)
     url = models.CharField(max_length=256)
