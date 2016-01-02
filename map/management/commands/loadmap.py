@@ -43,7 +43,7 @@ class Command(BaseCommand):
                     except Exception as get_ex:
                         if isinstance(get_ex, aiohttp.errors.ServerDisconnectedError) \
                                 or isinstance(get_ex.__cause__, aiohttp.errors.ServerDisconnectedError):
-                            log.warning('Failure to get %s: %s, will retry', url, get_ex)
+                            log.warning('Failure to get %s: %s, will retry', url, repr(get_ex))
                             continue
         loop.run_until_complete(asyncio.wait([load(endpoint) for endpoint in endpoints]))
         session.close()
@@ -81,12 +81,12 @@ class Command(BaseCommand):
             place = Place(name=data['vill'], url=url,
                           county=counties[sub(data, 'county', 0, 'id')],
                           hundred=hundreds[sub(data, 'hundred', 0, 'id')])
-            guess_coordinates(place, data['location'])
+            parse_coordinates(place, data['location'])
             # cannot bulk insert: the Place instances could not be used as a foreign key in Settlement later
             place.save()
             for manor in data['manors']:
                 manors_to_places[manor['id']] = place
-        self.load_data(['place/' + str(id) for id in places], load_place)
+        self.load_data(['place/' + str(id) for id in places if int(id)], load_place)
 
         # and do the same for settlements with a leader
         settlements = []
@@ -106,9 +106,9 @@ class Command(BaseCommand):
 
 def check(default, func, *args):
     try:
-        return func(args)
+        return func(*args)
     except Exception as e:
-        log.error(e)
+        log.error(repr(e))
         return default
 
 
@@ -123,6 +123,7 @@ def sub(data, *keys):
             log.exception('Cannot get %s from %s in %s', k, current, data)
     return current
 
+
 def first(data, *fields):
     for f in fields:
         if f in data:
@@ -133,7 +134,7 @@ def first(data, *fields):
             else:
                 if value:
                     return value
-    raise Exception('No %s in %s' % (' '.join(fields), data))
+    raise Exception('No %s in %s' % (', '.join(fields), data))
 
 
 def get_lord(name):
@@ -149,7 +150,7 @@ def get_lord(name):
 POINT = re.compile(r"POINT\s+\((-?\d+\.\d+)\s+(\d+\.\d+)\)")
 
 
-def guess_coordinates(place, location):
+def parse_coordinates(place, location):
     '''
     Translate coordinates from web set to longitude/latitude.
     :param place: a Place object to enrich with coordinates
