@@ -20,7 +20,7 @@ class Place(models.Model):
     url = models.CharField(max_length=256)
 
     def __str__(self):
-        return self.name
+        return '%s (%f, %f)' % (self.name, self.latitude, self.longitude)
 
 
 class Settlement(models.Model):

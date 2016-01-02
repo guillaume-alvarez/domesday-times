@@ -108,7 +108,7 @@ def check(default, func, *args):
     try:
         return func(*args)
     except Exception as e:
-        log.error(repr(e))
+        log.warn(repr(e))
         return default
 
 
