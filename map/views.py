@@ -1,14 +1,20 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.http import HttpResponse
+from django.core import serializers
 
 import logging
 
 from .models import Place
 
+log = logging.getLogger(__name__)
+
+
 # Create your views here.
 
 
-log = logging.getLogger(__name__)
+def index(request):
+    return redirect(map_pixi)
+
 
 GPS_FACTOR = 100
 LONGITUDE_MIN = int(-6.5 * GPS_FACTOR)
@@ -17,7 +23,7 @@ LATITUDE_MIN = int(49 * GPS_FACTOR)
 LATITUDE_MAX = int(54.7 * GPS_FACTOR)
 
 
-def england_map(request):
+def map_table(request):
     places = [[list() for longitude in range(LONGITUDE_MAX - LONGITUDE_MIN)] for latitude in range(LATITUDE_MAX - LATITUDE_MIN)]
     for p in Place.objects.all():
         row = int(p.latitude * GPS_FACTOR) - LATITUDE_MIN
@@ -29,4 +35,15 @@ def england_map(request):
             log.warn('No column %d for %s', col, repr(p))
             continue
         places[row][col].append(p)
-    return render(request, 'map/index.html', {'places':places})
+    return render(request, 'map/table.html', {'places':places})
+
+
+def map_pixi(request):
+    return render(request, 'map/pixi.html')
+
+
+def get_places(request):
+    # must serialize before passing data because the custom encoder for
+    # django objects (used in JsonResponse) is not passed to sub-objects
+    json_places = serializers.serialize('json', Place.objects.all())
+    return HttpResponse(json_places, content_type="application/json")
