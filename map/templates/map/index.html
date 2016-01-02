@@ -1,0 +1,17 @@
+{% if places %}
+    <table>
+        {% for lines in places %}
+        <tr>
+            {% for place in lines %}
+            {% if place %}
+            <td title="{{ place|join:', ' }}">.</td>
+            {% else %}
+            <td></td>
+            {% endif %}
+            {% endfor %}
+        </tr>
+        {% endfor %}
+    </table>
+{% else %}
+    <p>No place is available in DB.</p>
+{% endif %}
