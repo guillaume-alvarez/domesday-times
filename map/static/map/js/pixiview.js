@@ -72,7 +72,7 @@ function mouseWheelHandler(e) {
     // reverse Firefox’s detail value
     var delta = e.wheelDelta || -e.detail;
     var pos = stage.toLocal(renderer.plugins.interaction.mouse.global)
-    camera.zoom(0.01 * delta, pos.x, pos.y);
+    camera.zoom(0.1 * delta, pos.x, pos.y);
 }
 
 function onDragStart(event) {
