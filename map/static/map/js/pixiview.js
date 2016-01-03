@@ -1,21 +1,15 @@
 
 //Create the renderer
 var renderer = PIXI.autoDetectRenderer(256, 256);
-renderer.view.style.border = "1px dashed black";
 renderer.backgroundColor = 0x061639;
 renderer.view.style.position = "absolute";
 renderer.view.style.display = "block";
 renderer.autoResize = true;
+// 10px for scroll bars and such
 renderer.resize(window.innerWidth - 10, window.innerHeight - 10);
 
 //Add the canvas to the HTML document
 document.body.appendChild(renderer.view);
-
-//Create a container object called the `stage`
-
-//Tell the `renderer` to `render` the `stage`
-var stage = new PIXI.Container();
-renderer.render(stage);
 
 PIXI.loader
     .add("villageImage", villageImage)
@@ -39,12 +33,6 @@ PIXI.loader
 
 
         camera.init(renderer.width, renderer.height);
-        container.scale.x = camera.scale;
-        container.scale.y = camera.scale;
-
-        container.position.x = -(camera.x - 10) * camera.scale;
-        container.position.y = -(camera.y - 10) * camera.scale;
-
-        stage.addChild(container);
-        renderer.render(stage);
+        camera.apply(container);
+        renderer.render(container);
     });
