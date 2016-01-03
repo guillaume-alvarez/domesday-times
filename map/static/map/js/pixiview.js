@@ -16,9 +16,9 @@ var camera = new Camera();
 //Add the canvas to the HTML document
 document.body.appendChild(renderer.view);
 // IE9+, Chrome, Safari, Opera
-document.addEventListener("mousewheel", mouseWheelHandler, false);
+renderer.view.addEventListener("mousewheel", mouseWheelHandler, false);
 // Firefox
-document.addEventListener("DOMMouseScroll", mouseWheelHandler, false);
+renderer.view.addEventListener("DOMMouseScroll", mouseWheelHandler, false);
 
 
 PIXI.loader
