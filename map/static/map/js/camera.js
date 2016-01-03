@@ -28,20 +28,38 @@ Camera.prototype.init = function(renderer, viewport, stage) {
     scaleY = (this.renderer.height - BORDER * 2) / this.height;
     this.scale = Math.min(scaleX, scaleY);
 
-    this.apply();
-};
-
-Camera.prototype.zoom = function(delta) {
-    this.scale += this.scale * delta;
-    this.apply();
-    this.renderer.render(stage);
-};
-
-Camera.prototype.apply = function() {
     this.viewport.scale.x = this.scale;
     this.viewport.scale.y = this.scale;
     this.viewport.position.x = -this.x * this.scale + BORDER;
     this.viewport.position.y = -this.y * this.scale + BORDER;
 
+    this.renderer.render(stage);
+};
+
+Camera.prototype.zoom = function(delta, x, y) {
+    // compute the position indicated by user with old scale
+    var worldPos = {
+        x: (x - this.viewport.position.x)/this.scale,
+        y: (y - this.viewport.position.y)/this.scale
+    };
+
+    this.scale += this.scale * delta;
+    this.viewport.scale.x = this.scale;
+    this.viewport.scale.y = this.scale;
+
+    // compute the target position with new scale
+    var newScreenPos = {
+        x: (worldPos.x) * this.scale + this.viewport.position.x,
+        y: (worldPos.y) * this.scale + this.viewport.position.y
+    };
+    this.viewport.position.x -= (newScreenPos.x-x);
+    this.viewport.position.y -= (newScreenPos.y-y);
+
+    this.renderer.render(stage);
+};
+
+Camera.prototype.drag = function(x, y) {
+    this.viewport.position.x = x;
+    this.viewport.position.y = y;
     this.renderer.render(stage);
 };

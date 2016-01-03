@@ -71,14 +71,15 @@ function setup(loader, resources) {
 function mouseWheelHandler(e) {
     // reverse Firefox’s detail value
     var delta = e.wheelDelta || -e.detail;
-    camera.zoom(0.1 * delta);
+    var pos = stage.toLocal(renderer.plugins.interaction.mouse.global)
+    camera.zoom(0.01 * delta, pos.x, pos.y);
 }
 
 function onDragStart(event) {
     // store a reference to the data
     // the reason for this is because of multitouch
     // we want to track the movement of this particular touch
-    world.dragStart = event.data.getLocalPosition(world.parent);
+    world.dragStart = event.data.getLocalPosition(stage);
     world.dragStart.x -= world.position.x;
     world.dragStart.y -= world.position.y;
     world.dragging = true;
@@ -87,14 +88,12 @@ function onDragStart(event) {
 function onDragEnd() {
     world.dragging = false;
     // set the interaction data to null
-    world.data = null;
+    world.dragStart = null;
 }
 
 function onDragMove(event) {
     if (world.dragging) {
-        var newPosition = event.data.getLocalPosition(world.parent);
-        world.position.x = newPosition.x - world.dragStart.x;
-        world.position.y = newPosition.y - world.dragStart.y;
-        renderer.render(stage);
+        var newPosition = event.data.getLocalPosition(stage);
+        camera.drag(newPosition.x - world.dragStart.x, newPosition.y - world.dragStart.y);
     }
 }
