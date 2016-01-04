@@ -1,3 +1,9 @@
 Present Domesday book data as a map usable for a game.
 
 Use API from http://opendomesday.org/api/ to load it.
+
+Current display idea is to propose a React/Flux interface with
+ * a map powered by pixi.js renderer (supports canvas/webGL)
+ * informative React components, on places, lords, etc.
+ * bootstrap css with a navbar allowing to go into admin views
+ * django server backend
