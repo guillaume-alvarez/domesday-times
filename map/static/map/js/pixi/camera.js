@@ -1,4 +1,4 @@
-/*
+/**
  * A Camera object that can be used to maintain a viewport container.
  */
 var Camera = function() {
@@ -55,11 +55,11 @@ Camera.prototype.zoom = function(delta, x, y) {
     this.viewport.position.x -= (newScreenPos.x-x);
     this.viewport.position.y -= (newScreenPos.y-y);
 
-    this.renderer.render(stage);
+    this.renderer.render(this.stage);
 };
 
 Camera.prototype.drag = function(x, y) {
     this.viewport.position.x = x;
     this.viewport.position.y = y;
-    this.renderer.render(stage);
+    this.renderer.render(this.stage);
 };
