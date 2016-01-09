@@ -6,7 +6,9 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.4/jquery.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/react/0.14.5/react.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/react/0.14.5/react-dom.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-core/5.6.15/browser.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-core/5.8.34/browser.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/flux/2.1.1/Flux.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/superagent/1.2.0/superagent.js"></script>
     <title>{% block title %}Domesday Times{% endblock %}</title>
 </head>
 
@@ -16,13 +18,22 @@
 
     <!-- Set some values using django template to be used in JS code-->
     <script type="text/javascript">
-        var villageImage = "{% static "map/images/Village.png" %}";
-        var placesJson = "{% url "map-places" %}";
+        var villageImagePath = "{% static "map/images/Village.png" %}";
+        var placesJsonPath = "{% url "map-places" %}";
+
+        var AppDispatcher = new Flux.Dispatcher();
     </script>
-    <script type="text/javascript" src="{% static 'map/js/pixi/camera.js' %}"></script>
-    <script type="text/javascript" src="{% static 'map/js/pixi/piximap.js' %}"></script>
+
+    <script type="text/javascript" src="{% static 'map/js/tools/EventEmitter.js' %}"></script>
+    <script type="text/javascript" src="{% static 'map/js/Actions.js' %}"></script>
+    <script type="text/javascript" src="{% static 'map/js/api.js' %}"></script>
+    <script type="text/javascript" src="{% static 'map/js/stores/Store.js' %}"></script>
+    <script type="text/javascript" src="{% static 'map/js/stores/PlacesStore.js' %}"></script>
+
+    <script type="text/javascript" src="{% static 'map/js/pixi/Camera.js' %}"></script>
+    <script type="text/javascript" src="{% static 'map/js/pixi/PixiMap.js' %}"></script>
     <!-- babel will convert jsx from react files to standard js-->
-    <script type="text/babel" src="{% static 'map/js/place.js' %}"></script>
-    <script type="text/babel" src="{% static 'map/js/map.js' %}"></script>
+    <script type="text/babel" src="{% static 'map/js/MapBox.js' %}"></script>
+    <script type="text/babel" src="{% static 'map/js/PlaceBox.js' %}"></script>
 </body>
 </html>

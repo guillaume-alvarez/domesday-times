@@ -3,7 +3,7 @@
  */
 var MapBox = React.createClass({
     componentDidMount: function() {
-        map = new Map(this.refs.gameCanvas, 1366, 768);
+        map = new PixiMap(this.refs.gameCanvas, 1366, 768);
     },
     render: function() {
         return (
