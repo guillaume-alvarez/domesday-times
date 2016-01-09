@@ -1,3 +1,5 @@
+// from https://github.com/primus/eventemitter3/blob/master/index.js
+
 'use strict';
 
 //
