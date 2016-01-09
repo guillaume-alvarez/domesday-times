@@ -2,7 +2,7 @@
  * Display a map loaded from json data using pixi.js lib.
  * It inserts itself in the <div> passed as a parameter.
  */
-function Map(div, width, height) {
+function PixiMap(div, width, height) {
     //Create the renderer
     var renderer = PIXI.autoDetectRenderer(width, height);
     renderer.backgroundColor = 0x061639;
@@ -11,6 +11,7 @@ function Map(div, width, height) {
     stage.interactive = true;
     var world = new PIXI.ParticleContainer();
     var camera = new Camera();
+    var tileSize = 100.0;
 
     //Add the canvas to the HTML document
     div.appendChild(renderer.view);
@@ -21,19 +22,20 @@ function Map(div, width, height) {
 
 
     PIXI.loader
-        .add("villageImage", villageImage)
-        .add("placesJson", placesJson)
+        .add("villageImage", villageImagePath)
+        .add("placesJson", placesJsonPath)
         .load(setup);
 
     function setup(loader, resources) {
         var texture = resources.villageImage.texture;
+        tileSize *= Math.max(texture.width, texture.height);
 
         for (var i in resources.placesJson.data) {
             var sprite = new PIXI.Sprite(texture);
             var place = resources.placesJson.data[i];
-            sprite.position.x = place.fields.longitude * texture.width * 100.0;
+            sprite.position.x = place.fields.longitude * tileSize;
             // latitude is from south, Y is from screen top
-            sprite.position.y = -place.fields.latitude * texture.height * 100.0;
+            sprite.position.y = -place.fields.latitude * tileSize;
 
             camera.include(sprite.position.x, sprite.position.y);
             world.addChild(sprite);
@@ -61,7 +63,9 @@ function Map(div, width, height) {
             .on('touchendoutside', onDragEnd)
             // events for drag move
             .on('mousemove', onDragMove)
-            .on('touchmove', onDragMove);
+            .on('touchmove', onDragMove)
+            // events for user click on map
+            .on('mousedown', onClick);
 
 
         camera.init(renderer, world, stage);
@@ -94,6 +98,32 @@ function Map(div, width, height) {
         if (world.dragging) {
             var newPosition = event.data.getLocalPosition(stage);
             camera.drag(newPosition.x - world.dragStart.x, newPosition.y - world.dragStart.y);
+        }
+    }
+
+    function onClick(event) {
+        var pos = event.data.getLocalPosition(world);
+        pos.x = pos.x / tileSize;
+        pos.y = -pos.y / tileSize;
+        var minDist = Number.MAX_VALUE;
+        var minPlace;
+        function distance(pos, place) {
+            return Math.pow(place.fields.latitude - pos.y, 2) + Math.pow(place.fields.longitude - pos.x, 2);
+        }
+        var places = PIXI.loader.resources.placesJson;
+        for (var i in places.data) {
+            var place = places.data[i];
+            var dist = distance(pos, place);
+            if (dist < minDist) {
+                minDist = dist;
+                minPlace = place;
+            }
+        }
+        if (minPlace && Math.sqrt(minDist) < 0.2) {
+            console.log("clicked on " + JSON.stringify(minPlace, null, 4));
+            Actions.selectPlace(minPlace.pk, minPlace);
+        } else {
+            console.log("Nothing selected, clicked at " + JSON.stringify(pos, null, 4));
         }
     }
 }
