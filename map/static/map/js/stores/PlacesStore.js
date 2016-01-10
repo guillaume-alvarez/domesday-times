@@ -22,11 +22,13 @@ PlacesStore.prototype.handle = function (event) {
         case Actions.ACTION_SELECT_PLACE:
             PLACES_STORE._selectedId = event.id;
             if (!(PLACES_STORE._selectedId in PLACES_STORE._places)) {
-                PLACES_STORE._places[event.id] = event.place;
+                Api.getData('places', event.id, Actions.ACTION_GET_PLACE, {});
+                return true;
             }
             break;
-        case Actions.ACTION_LOADED_PLACE:
-            PLACES_STORE._places[event.id] = event.place;
+        case Actions.ACTION_GET_PLACE:
+            console.log('Loaded ' + JSON.stringify(event.response, null, 4));
+            PLACES_STORE._places[event.response.id] = event.response;
             break;
         default:
             return true;

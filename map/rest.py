@@ -6,23 +6,34 @@ from .models import Place, Settlement
 
 
 # Serializers define the API representation.
-class PlaceSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Place
-        fields = '__all__'
-
-
 class SettlementSerializer(serializers.ModelSerializer):
     class Meta:
         model = Settlement
         fields = '__all__'
 
 
+class PlaceSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Place
+        fields = ('id', 'longitude', 'latitude')
+
+
+class PlaceDetailSerializer(serializers.ModelSerializer):
+    settlements = SettlementSerializer(many=True, read_only=True)
+    class Meta:
+        model = Place
+        fields = '__all__'
+
+
 # ViewSets define the view behavior.
 class PlaceViewset(viewsets.ReadOnlyModelViewSet):
     queryset = Place.objects.all()
-    serializer_class = PlaceSerializer
     renderer_classes = (renderers.JSONRenderer, )
+    def get_serializer_class(self):
+        if self.action == 'retrieve':
+            return PlaceDetailSerializer
+        else:
+            return PlaceSerializer
 
 
 class SettlementViewset(viewsets.ReadOnlyModelViewSet):

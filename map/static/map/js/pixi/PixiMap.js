@@ -121,7 +121,7 @@ function PixiMap(div, width, height) {
         }
         if (minPlace && Math.sqrt(minDist) < 0.2) {
             console.log("clicked on " + JSON.stringify(minPlace, null, 4));
-            Actions.selectPlace(minPlace.id, minPlace);
+            Actions.selectPlace(minPlace.id);
         } else {
             console.log("Nothing selected, clicked at " + JSON.stringify(pos, null, 4));
         }
