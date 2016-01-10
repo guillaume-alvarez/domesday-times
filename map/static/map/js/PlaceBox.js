@@ -20,7 +20,7 @@ var PlaceBox = React.createClass({
         if (this.state.selected) {
             return (
                 <div className="placeBox">
-                    <p>Selected place: {this.state.selected.name}</p>
+                    <p>Selected place: {this.state.selected.name} ({this.state.selected.county})</p>
                 </div>
             );
         } else {

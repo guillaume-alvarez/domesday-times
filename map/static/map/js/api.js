@@ -1,4 +1,4 @@
-
+var API_URL = '/api/';
 var TIMEOUT = 10000;
 
 var _pendingRequests = {};
@@ -11,23 +11,27 @@ function abortPendingRequests(key) {
     }
 }
 
+function makeUrl(type, id) {
+    var url = API_URL + type;
+    if (id) url += '/' + id + '/';
+    return url;
+}
+
 function dispatch(action, response, params) {
-    var payload = {actionType: action, response: response};
-    if (params) {
-        payload.queryParams = params;
-    }
-    AppDispatcher.handleRequestAction(payload);
+    var payload = {actionType: action, response: response.body};
+    if (params) payload.queryParams = params;
+    AppDispatcher.dispatch(payload);
 }
 
 // return successful response, else return request Constants
 function makeDigestFun(action, params) {
     return function (err, res) {
         if (err && err.timeout === TIMEOUT) {
-            dispatch(action, Constants.request.TIMEOUT, params);
+            dispatch(action, 'TIMEOUT', params);
         } else if (res.status === 400) {
-            UserActions.logout();
+            dispatch(action, 'LOGOUT', params);
         } else if (!res.ok) {
-            dispatch(action, Constants.request.ERROR, params);
+            dispatch(action, 'ERROR', params);
         } else {
             dispatch(action, res, params);
         }
@@ -36,7 +40,7 @@ function makeDigestFun(action, params) {
 
 // a simple get request
 function get(url) {
-    return request
+    return superagent
         .get(url)
         .set('Accept', 'application/json')
         .timeout(TIMEOUT)
@@ -44,10 +48,10 @@ function get(url) {
 }
 
 var Api = {
-    getData: function(url, action, params) {
+    getData: function(type, id, action, params) {
+        var url = makeUrl(type, id);
         abortPendingRequests(url);
-        dispatch(action, Constants.request.PENDING, params);
-        _pendingRequests[key] = get(url).end(
+        _pendingRequests[url] = get(url).end(
             makeDigestFun(action, params)
         );
     }
