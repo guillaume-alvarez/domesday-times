@@ -7,7 +7,7 @@ var MapBox = React.createClass({
     },
     render: function() {
         return (
-            <div className="map-canvas-container" ref="gameCanvas">
+            <div className="map-canvas-container panel panel-default" ref="gameCanvas">
             </div>
         );
     },
