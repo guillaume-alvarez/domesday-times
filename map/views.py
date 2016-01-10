@@ -40,10 +40,3 @@ def map_table(request):
 
 def map_pixi(request):
     return render(request, 'map/pixi.html')
-
-
-def get_places(request):
-    # must serialize before passing data because the custom encoder for
-    # django objects (used in JsonResponse) is not passed to sub-objects
-    json_places = serializers.serialize('json', Place.objects.all())
-    return HttpResponse(json_places, content_type="application/json")

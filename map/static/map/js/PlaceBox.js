@@ -3,7 +3,7 @@
  */
 var PlaceBox = React.createClass({
     getInitialState: function() {
-        return PLACES_STORE.selected();
+        return {selected: PLACES_STORE.selected()};
     },
     componentDidMount: function() {
         PLACES_STORE.addListener(this.placeChanged);
@@ -13,15 +13,14 @@ var PlaceBox = React.createClass({
     },
 
     placeChanged: function() {
-        this.setState(PLACES_STORE.selected());
+        this.setState({selected: PLACES_STORE.selected()});
     },
 
     render: function() {
-        var selected = this.state;
-        if (selected) {
+        if (this.state.selected) {
             return (
                 <div className="placeBox">
-                    <p>Selected place: {selected.fields.name}</p>
+                    <p>Selected place: {this.state.selected.name}</p>
                 </div>
             );
         } else {

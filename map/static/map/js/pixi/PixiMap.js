@@ -23,7 +23,7 @@ function PixiMap(div, width, height) {
 
     PIXI.loader
         .add("villageImage", villageImagePath)
-        .add("placesJson", placesJsonPath)
+        .add("placesJson", "/api/places.json")
         .load(setup);
 
     function setup(loader, resources) {
@@ -33,9 +33,9 @@ function PixiMap(div, width, height) {
         for (var i in resources.placesJson.data) {
             var sprite = new PIXI.Sprite(texture);
             var place = resources.placesJson.data[i];
-            sprite.position.x = place.fields.longitude * tileSize;
+            sprite.position.x = place.longitude * tileSize;
             // latitude is from south, Y is from screen top
-            sprite.position.y = -place.fields.latitude * tileSize;
+            sprite.position.y = -place.latitude * tileSize;
 
             camera.include(sprite.position.x, sprite.position.y);
             world.addChild(sprite);
@@ -108,7 +108,7 @@ function PixiMap(div, width, height) {
         var minDist = Number.MAX_VALUE;
         var minPlace;
         function distance(pos, place) {
-            return Math.pow(place.fields.latitude - pos.y, 2) + Math.pow(place.fields.longitude - pos.x, 2);
+            return Math.pow(place.latitude - pos.y, 2) + Math.pow(place.longitude - pos.x, 2);
         }
         var places = PIXI.loader.resources.placesJson;
         for (var i in places.data) {
@@ -121,7 +121,7 @@ function PixiMap(div, width, height) {
         }
         if (minPlace && Math.sqrt(minDist) < 0.2) {
             console.log("clicked on " + JSON.stringify(minPlace, null, 4));
-            Actions.selectPlace(minPlace.pk, minPlace);
+            Actions.selectPlace(minPlace.id, minPlace);
         } else {
             console.log("Nothing selected, clicked at " + JSON.stringify(pos, null, 4));
         }
