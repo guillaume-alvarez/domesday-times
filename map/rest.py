@@ -19,7 +19,7 @@ class PlaceSerializer(serializers.ModelSerializer):
 
 
 class PlaceDetailSerializer(serializers.ModelSerializer):
-    settlements = SettlementSerializer(many=True, read_only=True)
+    settlement_set = SettlementSerializer(many=True, read_only=True)
     class Meta:
         model = Place
         fields = '__all__'

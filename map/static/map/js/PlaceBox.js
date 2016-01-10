@@ -22,9 +22,10 @@ var PlaceBox = React.createClass({
                 <div className="panel-heading">
                     <h3 className="panel-title">Selected place</h3>
                 </div>
-                    <div className="panel-body">
-                        <PlaceDesc place={this.state.selected} />
-                    </div>
+                <div className="panel-body">
+                    <PlaceDesc place={this.state.selected} />
+                </div>
+                <SettlementsList settlements={this.state.selected ? (this.state.selected.settlement_set || []) : []}/>
             </div>
         );
     }
@@ -49,6 +50,35 @@ var PlaceDesc = React.createClass({
                     <li>Hundred of {place.hundred}</li>
                 </ul>
             </div>
+        );
+    }
+});
+
+var SettlementsList = React.createClass({
+    render: function() {
+        var subs = this.props.settlements.map(function(settlement){
+            return (
+                <li className="list-group-item">
+                    <Settlement settlement={settlement} />
+                </li>
+            );
+        });
+        return (
+            <ul className="settlementsList list-group">
+                {subs}
+            </ul>
+        );
+    }
+});
+
+var Settlement = React.createClass({
+    render: function() {
+        var settlement = this.props.settlement;
+        var lord = settlement.head_of_manor || settlement.lord || settlement.overlord;
+        return (
+            <p className="settlement">
+                {lord}: {this.props.settlement.value}£
+            </p>
         );
     }
 });
