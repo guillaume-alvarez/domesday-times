@@ -2,19 +2,22 @@
  * Displays the selected place information.
  */
 var PlaceBox = React.createClass({
+    getInitialState: function() {
+        return PLACES_STORE.selected();
+    },
     componentDidMount: function() {
         PLACES_STORE.addListener(this.placeChanged);
     },
     componentWillUnmount: function() {
         PLACES_STORE.removeListener(this.placeChanged );
     },
+
     placeChanged: function() {
-        // Since the places changed, trigger a new render.
-        this.forceUpdate();
+        this.setState(PLACES_STORE.selected());
     },
 
     render: function() {
-        var selected = PLACES_STORE.selected();
+        var selected = this.state;
         if (selected) {
             return (
                 <div className="placeBox">
