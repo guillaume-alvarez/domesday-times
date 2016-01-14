@@ -9,7 +9,9 @@ function PixiMap(div, width, height) {
 
     var stage = new PIXI.Container();
     stage.interactive = true;
-    var world = new PIXI.ParticleContainer();
+    var world = new PIXI.Container();
+    world.sprites = new PIXI.ParticleContainer(200000);
+    world.addChild(world.sprites);
     var camera = new Camera();
     var tileSize = 100.0;
 
@@ -20,25 +22,25 @@ function PixiMap(div, width, height) {
     // Firefox
     renderer.view.addEventListener("DOMMouseScroll", mouseWheelHandler, false);
 
-
     PIXI.loader
         .add("villageImage", villageImagePath)
         .add("placesJson", "/api/places.json")
         .load(setup);
 
     function setup(loader, resources) {
-        var texture = resources.villageImage.texture;
-        tileSize *= Math.max(texture.width, texture.height);
+        world.sprites.texture = resources.villageImage.texture;
+        world.sprites.textureSize = Math.max(world.sprites.texture.width, world.sprites.texture.height);
+        tileSize *= world.sprites.textureSize;
 
         for (var i in resources.placesJson.data) {
-            var sprite = new PIXI.Sprite(texture);
+            var sprite = new PIXI.Sprite(world.sprites.texture);
             var place = resources.placesJson.data[i];
-            sprite.position.x = place.longitude * tileSize;
+            sprite.position.x = place.longitude * tileSize - world.sprites.textureSize / 2;
             // latitude is from south, Y is from screen top
-            sprite.position.y = -place.latitude * tileSize;
+            sprite.position.y = -place.latitude * tileSize - world.sprites.textureSize / 2;
 
             camera.include(sprite.position.x, sprite.position.y);
-            world.addChild(sprite);
+            world.sprites.addChild(sprite);
         }
 
         // required to be able to click on it
@@ -50,6 +52,13 @@ function PixiMap(div, width, height) {
         stage.addChildAt(graphics, 0);
 
         stage.addChild(world);
+
+        var circle = new PIXI.Graphics();
+        circle.beginFill(0xFFFFFF, 0.0);
+        circle.lineStyle(world.sprites.textureSize / 8, 0x66FF66, 1.0);
+        circle.drawCircle(0, 0, world.sprites.textureSize);
+        circle.endFill();
+        world.selectionCircle = circle.generateTexture();
 
         // setup events
         stage
@@ -65,8 +74,7 @@ function PixiMap(div, width, height) {
             .on('mousemove', onDragMove)
             .on('touchmove', onDragMove)
             // events for user click on map
-            .on('mousedown', onClick);
-
+            .on('mousedown', onSelect);
 
         camera.init(renderer, world, stage);
     }
@@ -101,7 +109,7 @@ function PixiMap(div, width, height) {
         }
     }
 
-    function onClick(event) {
+    function onSelect(event) {
         var pos = event.data.getLocalPosition(world);
         pos.x = pos.x / tileSize;
         pos.y = -pos.y / tileSize;
@@ -119,11 +127,29 @@ function PixiMap(div, width, height) {
                 minPlace = place;
             }
         }
-        if (minPlace && Math.sqrt(minDist) < 0.2) {
-            console.log("clicked on " + JSON.stringify(minPlace, null, 4));
-            Actions.selectPlace(minPlace.id);
-        } else {
+
+        if (!minPlace || Math.sqrt(minDist) > 0.2) {
             console.log("Nothing selected, clicked at " + JSON.stringify(pos, null, 4));
+            if (world.selectionSprite) {
+                world.removeChild(world.selectionSprite);
+                world.selectionSprite = null;
+                renderer.render(stage);
+            }
+            return;
         }
+
+        var place = minPlace;
+        console.log("clicked on " + JSON.stringify(place, null, 4));
+
+        if (world.selectionSprite) world.removeChild(world.selectionSprite);
+
+        world.selectionSprite = new PIXI.Sprite(world.selectionCircle);
+        world.selectionSprite.position.x = place.longitude * tileSize - world.sprites.textureSize;
+        world.selectionSprite.position.y = -place.latitude * tileSize - world.sprites.textureSize;
+        world.addChild(world.selectionSprite);
+        renderer.render(stage);
+
+        Actions.selectPlace(place.id);
     }
+
 }
