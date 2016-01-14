@@ -58,7 +58,7 @@ var SettlementsList = React.createClass({
     render: function() {
         var subs = this.props.settlements.map(function(settlement){
             return (
-                <li className="list-group-item">
+                <li key={settlement.id} className="list-group-item">
                     <Settlement settlement={settlement} />
                 </li>
             );
