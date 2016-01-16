@@ -4,6 +4,7 @@ from .models import *
 
 # Register your models here.
 
+admin.site.register(DomesdayData)
 admin.site.register(Lord)
 admin.site.register(Place)
 admin.site.register(Settlement)
