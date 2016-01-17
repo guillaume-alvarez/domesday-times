@@ -130,15 +130,17 @@ class Command(BaseCommand):
         Settlement.objects.all().delete()
         Lord.objects.all().delete()
 
+        places = {p.data_id: p for p in Place.objects.all()}
+
         settlements = []
         for data in DomesdayData.objects.filter(type='manor'):
             try:
                 manor = data.data_as_dict()
-                place = Place.objects.filter(data_id=manor['place'][0]['id'])
-                if place.exists():
+                place_id = str(manor['place'][0]['id'])
+                if place_id in places:
                     lord = get_lord(first(manor, 'lord86', 'lord66', 'teninchief', 'overlord66')[0])
                     overlord = get_lord(first(manor, 'teninchief', 'overlord66', 'lord86', 'lord66')[0])
-                    settlements.append(Settlement(data_id=manor['id'], place=place.first(),
+                    settlements.append(Settlement(data_id=manor['id'], place=places[place_id],
                                                   head_of_manor=manor['headofmanor'],
                                                   value=check(0.0, first, manor, 'value86', 'value66', 'geld', 'villtax', 'millvalue', 'payments', 'burgesses'),
                                                   lord=lord, overlord=overlord))
