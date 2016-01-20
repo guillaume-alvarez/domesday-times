@@ -53,3 +53,13 @@ class Settlement(models.Model):
         return self.place.name + '>' + str(self.head_of_manor) + '>' + self.lord.name + '>' + self.overlord.name
 
 
+class Road(models.Model):
+    start = models.ForeignKey(Place)
+    end = models.ForeignKey(Place, related_name='+')
+
+    class Meta:
+        unique_together = ("start", "end")
+
+    def __str__(self):
+        return '(%s, %s)' % (self.start, self.end)
+

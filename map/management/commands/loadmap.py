@@ -152,10 +152,46 @@ class Command(BaseCommand):
 
         self.stdout.write(self.style.SUCCESS('Successfully loaded %d settlements and %s lords.' % (Settlement.objects.count(), Lord.objects.count())))
 
+    def create_roads(self):
+        """Compute the roads between the different places"""
+        Road.objects.all().delete()
+
+        points = {}
+        for place in Place.objects.all():
+            point = (float(place.longitude), float(place.latitude))
+            if point in points:
+                log.warn('Cannot replace %s by %s for %s', points[point], place, point)
+            else:
+                points[point] = place
+        from map.pyshull import PySHull
+        points_list = list(set(points.keys()))
+        triangles = PySHull(points_list)
+        self.stdout.write(self.style.SUCCESS('Computed %d triangles from %d points.' % (len(points), len(triangles))))
+
+        segments = set()
+        for tri in triangles:
+            p0 = points_list[tri[0]]
+            p1 = points_list[tri[1]]
+            p2 = points_list[tri[2]]
+            # order between points does not matter: all in all it's the same link
+            segments.add(frozenset([p0, p1]))
+            segments.add(frozenset([p0, p2]))
+            segments.add(frozenset([p1, p2]))
+
+        roads = []
+        for s in segments:
+            l = list(s)
+            place0 = points[l[0]]
+            place1 = points[l[1]]
+            roads.append(Road(start=points[l[0]], end=points[l[1]]))
+        Road.objects.bulk_create(roads)
+        self.stdout.write(self.style.SUCCESS('Created %d roads from %d places.' % (Road.objects.count(), Place.objects.count())))
+
     def all(self):
         self.download_domesday()
         self.load_places()
         self.load_settlements()
+        self.create_roads()
 
 
 def check(default, func, *args):
