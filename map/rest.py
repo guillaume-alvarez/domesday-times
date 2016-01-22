@@ -16,7 +16,7 @@ class PlaceSerializer(serializers.ModelSerializer):
     roads = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
     class Meta:
         model = Place
-        fields = ('id', 'longitude', 'latitude')
+        fields = ('id', 'longitude', 'latitude', 'roads')
 
 
 class PlaceDetailSerializer(serializers.ModelSerializer):

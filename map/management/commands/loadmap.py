@@ -187,8 +187,9 @@ class Command(BaseCommand):
             p0 = points[l[0]]
             p1 = points[l[1]]
             roads.append(ThroughModel(from_place_id=p0.pk, to_place_id=p1.pk))
+            roads.append(ThroughModel(from_place_id=p1.pk, to_place_id=p0.pk))
         ThroughModel.objects.bulk_create(roads)
-        self.stdout.write(self.style.SUCCESS('Stored %d roads in DB.' % ThroughModel.objects.count()))
+        self.stdout.write(self.style.SUCCESS('Stored %d roads items in DB.' % ThroughModel.objects.count()))
 
     def all(self):
         self.download_domesday()
