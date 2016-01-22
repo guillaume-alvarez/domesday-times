@@ -13,6 +13,7 @@ class SettlementSerializer(serializers.ModelSerializer):
 
 
 class PlaceSerializer(serializers.ModelSerializer):
+    roads = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
     class Meta:
         model = Place
         fields = ('id', 'longitude', 'latitude')
@@ -20,6 +21,7 @@ class PlaceSerializer(serializers.ModelSerializer):
 
 class PlaceDetailSerializer(serializers.ModelSerializer):
     settlement_set = SettlementSerializer(many=True, read_only=True)
+    roads = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
     class Meta:
         model = Place
         fields = '__all__'

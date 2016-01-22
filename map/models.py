@@ -36,6 +36,7 @@ class Place(models.Model):
     hundred = models.CharField(max_length=128, null=True)
     longitude = models.DecimalField(decimal_places=10, max_digits=20)
     latitude = models.DecimalField(decimal_places=10, max_digits=20)
+    roads = models.ManyToManyField("self", related_name="roads")
 
     def __str__(self):
         return '%s (%f, %f)' % (self.name, self.latitude, self.longitude)
@@ -52,14 +53,4 @@ class Settlement(models.Model):
     def __str__(self):
         return self.place.name + '>' + str(self.head_of_manor) + '>' + self.lord.name + '>' + self.overlord.name
 
-
-class Road(models.Model):
-    start = models.ForeignKey(Place)
-    end = models.ForeignKey(Place, related_name='+')
-
-    class Meta:
-        unique_together = ("start", "end")
-
-    def __str__(self):
-        return '(%s, %s)' % (self.start, self.end)
 

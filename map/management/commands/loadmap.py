@@ -154,7 +154,9 @@ class Command(BaseCommand):
 
     def create_roads(self):
         """Compute the roads between the different places"""
-        Road.objects.all().delete()
+
+        ThroughModel = Place.roads.through
+        ThroughModel.objects.all().delete()
 
         points = {}
         for place in Place.objects.all():
@@ -166,7 +168,7 @@ class Command(BaseCommand):
         from map.pyshull import PySHull
         points_list = list(set(points.keys()))
         triangles = PySHull(points_list)
-        self.stdout.write(self.style.SUCCESS('Computed %d triangles from %d points.' % (len(points), len(triangles))))
+        self.stdout.write(self.style.SUCCESS('Computed %d triangles from %d points.' % (len(triangles), len(points))))
 
         segments = set()
         for tri in triangles:
@@ -177,15 +179,16 @@ class Command(BaseCommand):
             segments.add(frozenset([p0, p1]))
             segments.add(frozenset([p0, p2]))
             segments.add(frozenset([p1, p2]))
+        self.stdout.write(self.style.SUCCESS('Computed %d roads from %d places.' % (len(segments), Place.objects.count())))
 
         roads = []
         for s in segments:
             l = list(s)
-            place0 = points[l[0]]
-            place1 = points[l[1]]
-            roads.append(Road(start=points[l[0]], end=points[l[1]]))
-        Road.objects.bulk_create(roads)
-        self.stdout.write(self.style.SUCCESS('Created %d roads from %d places.' % (Road.objects.count(), Place.objects.count())))
+            p0 = points[l[0]]
+            p1 = points[l[1]]
+            roads.append(ThroughModel(from_place_id=p0.pk, to_place_id=p1.pk))
+        ThroughModel.objects.bulk_create(roads)
+        self.stdout.write(self.style.SUCCESS('Stored %d roads in DB.' % ThroughModel.objects.count()))
 
     def all(self):
         self.download_domesday()
