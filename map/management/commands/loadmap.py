@@ -105,7 +105,7 @@ class Command(BaseCommand):
                     overlord = get_lord(first(manor, 'teninchief', 'overlord66', 'lord86', 'lord66')[0])
                     settlements.append(Settlement(data_id=manor['id'], place=places[place_id],
                                                   head_of_manor=manor['headofmanor'],
-                                                  value=check(0.0, first, manor, 'value86', 'value66', 'geld', 'villtax', 'millvalue', 'payments', 'burgesses'),
+                                                  value=check(0.0, first, manor, 'value86', 'value66', 'valueqr', 'geld', 'villtax', 'millvalue', 'payments', 'burgesses'),
                                                   lord=lord, overlord=overlord))
             except Exception as ex:
                 log.exception('Cannot load %s: %s', manor, ex)
