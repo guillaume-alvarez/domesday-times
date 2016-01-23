@@ -44,7 +44,7 @@ var PlaceDesc = React.createClass({
 
         return (
             <div className="placeDesc">
-                <p>{place.name}</p>
+                <p><a target="_blank" href={'http://opendomesday.org/api/1.0/place/'+place.data_id}>{place.name}</a></p>
                 <ul>
                     <li>{place.county} County</li>
                     <li>Hundred of {place.hundred}</li>
@@ -77,7 +77,7 @@ var Settlement = React.createClass({
         var lord = settlement.head_of_manor || settlement.lord || settlement.overlord;
         return (
             <p className="settlement">
-                {lord}: {this.props.settlement.value}£
+                <a target="_blank" href={'http://opendomesday.org/api/1.0/manor/'+settlement.data_id}>{lord}</a>: {settlement.value}£
             </p>
         );
     }
