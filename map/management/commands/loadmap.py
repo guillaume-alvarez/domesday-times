@@ -26,43 +26,6 @@ class Command(BaseCommand):
         for action in options['actions'].split(','):
             getattr(self, action)()
 
-    def download(self, endpoints, action):
-        """retrieve data from endpoints added to base url"""
-        log.info('Will load %s from %s', ', '.join(endpoints), API_URL)
-        loop = asyncio.get_event_loop()
-        session = aiohttp.ClientSession(loop=loop)
-        max_requests = asyncio.Semaphore(20)
-        results = []
-
-        async def load(endpoint):
-            url = API_URL + endpoint
-            log.debug('Load data from %s ...', url)
-            while True:
-                async with max_requests:
-                    try:
-                        async with session.get(url, compress=True) as resp:
-                            try:
-                                if resp.status != 200:
-                                    raise Exception('Error %d' % resp.status)
-                                data = await resp.json()
-                                results.extend(action(data, url))
-                                log.debug('...loaded data from %s', url)
-                                break
-                            except Exception as ex:
-                                log.exception('Cannot load %s: %s', url, ex)
-                                # help debug by reporting it in console
-                                traceback.print_exc(file=self.stderr)
-                                break
-                    except Exception as get_ex:
-                        if isinstance(get_ex, aiohttp.errors.ServerDisconnectedError) \
-                                or isinstance(get_ex.__cause__, aiohttp.errors.ServerDisconnectedError):
-                            log.warning('Failure to get %s: %s, will retry', url, repr(get_ex))
-                            continue
-        loop.run_until_complete(asyncio.wait([load(endpoint) for endpoint in endpoints]))
-        session.close()
-        log.info('Loaded %d items.', len(results))
-        return results
-
     def download_domesday(self):
         DomesdayData.objects.all().delete()
 
@@ -74,13 +37,13 @@ class Command(BaseCommand):
             for county in data:
                 places.update([place['id'] for place in county['places_in_county']])
                 yield DomesdayData(fid=county['id'], type='county', url=url+county['id'], data=json.dumps(county))
-        DomesdayData.objects.bulk_create(self.download(['county/'], load_counties))
+        DomesdayData.objects.bulk_create(download(['county/'], load_counties))
 
         def load_hundreds(data, url):
             for hundred in data:
                 places.update([place['id'] for place in hundred['places_in_hundred']])
                 yield DomesdayData(fid=hundred['id'], type='hundred', url=url+hundred['id'], data=json.dumps(hundred))
-        DomesdayData.objects.bulk_create(self.download(['hundred/'], load_hundreds))
+        DomesdayData.objects.bulk_create(download(['hundred/'], load_hundreds))
 
         # then load the places in DB from web data (and collect manors ids)
         manors = set()
@@ -88,12 +51,12 @@ class Command(BaseCommand):
             for manor in place['manors']:
                 manors.add(manor['id'])
             yield DomesdayData(fid=place['id'], type='place', url=url, data=json.dumps(place))
-        DomesdayData.objects.bulk_create(self.download(['place/' + str(id) for id in places if int(id)], load_place))
+        DomesdayData.objects.bulk_create(download(['place/' + str(id) for id in places if int(id)], load_place))
 
         # and do the same for manors
         def load_manor(manor, url):
             yield DomesdayData(fid=manor['id'], type='manor', url=url, data=json.dumps(manor))
-        DomesdayData.objects.bulk_create(self.download(['manor/' + str(id) for id in manors], load_manor))
+        DomesdayData.objects.bulk_create(download(['manor/' + str(id) for id in manors], load_manor))
 
         self.stdout.write(self.style.SUCCESS('Successfully loaded Domesday Book data from "%s"' % API_URL))
 
@@ -259,3 +222,42 @@ def parse_coordinates(place, location):
     m = POINT.match(location)
     place.longitude = float(m.group(1))
     place.latitude = float(m.group(2))
+
+
+
+def download(endpoints, action):
+    """retrieve data from endpoints added to base url"""
+    log.info('Will load %s from %s', ', '.join(endpoints), API_URL)
+    loop = asyncio.get_event_loop()
+    session = aiohttp.ClientSession(loop=loop)
+    max_requests = asyncio.Semaphore(20)
+    results = []
+
+    async def load(endpoint):
+        url = API_URL + endpoint
+        log.debug('Load data from %s ...', url)
+        while True:
+            async with max_requests:
+                try:
+                    async with session.get(url, compress=True) as resp:
+                        try:
+                            if resp.status != 200:
+                                raise Exception('Error %d' % resp.status)
+                            data = await resp.json()
+                            results.extend(action(data, url))
+                            log.debug('...loaded data from %s', url)
+                            break
+                        except Exception as ex:
+                            log.exception('Cannot load %s: %s', url, ex)
+                            # help debug by reporting it in console
+                            traceback.print_exc()
+                            break
+                except Exception as get_ex:
+                    if isinstance(get_ex, aiohttp.errors.ServerDisconnectedError) \
+                            or isinstance(get_ex.__cause__, aiohttp.errors.ServerDisconnectedError):
+                        log.warning('Failure to get %s: %s, will retry', url, repr(get_ex))
+                        continue
+    loop.run_until_complete(asyncio.wait([load(endpoint) for endpoint in endpoints]))
+    session.close()
+    log.info('Loaded %d items.', len(results))
+    return results
