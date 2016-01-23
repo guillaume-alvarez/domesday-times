@@ -181,11 +181,17 @@ class Command(BaseCommand):
             segments.add(frozenset([p1, p2]))
         self.stdout.write(self.style.SUCCESS('Computed %d roads from %d places.' % (len(segments), Place.objects.count())))
 
+        segments_list = [tuple(iter(s)) for s in segments]
+        def distance(segment):
+            p0 = segment[0]
+            p1 = segment[1]
+            return (p0[0] - p1[0]) ** 2 + (p0[1] - p1[1]) ** 2
+        segments_list.sort(key=distance)
+
         roads = []
-        for s in segments:
-            l = list(s)
-            p0 = points[l[0]]
-            p1 = points[l[1]]
+        for s in segments_list[:int(0.985 * float(len(segments_list)))]:
+            p0 = points[s[0]]
+            p1 = points[s[1]]
             roads.append(ThroughModel(from_place_id=p0.pk, to_place_id=p1.pk))
             roads.append(ThroughModel(from_place_id=p1.pk, to_place_id=p0.pk))
         ThroughModel.objects.bulk_create(roads)
