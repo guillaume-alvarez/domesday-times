@@ -11,7 +11,6 @@ function PixiMap(div, width, height) {
     stage.interactive = true;
     var world = new PIXI.Container();
     world.sprites = new PIXI.ParticleContainer(200000);
-    world.addChild(world.sprites);
     var camera = new Camera();
     var tileSize = 100.0;
 
@@ -22,6 +21,7 @@ function PixiMap(div, width, height) {
     // Firefox
     renderer.view.addEventListener("DOMMouseScroll", mouseWheelHandler, false);
 
+    PIXI.loader.reset();
     PIXI.loader
         .add("villageImage", villageImagePath)
         .add("placesJson", "/api/places.json")
@@ -32,12 +32,29 @@ function PixiMap(div, width, height) {
         world.sprites.textureSize = Math.max(world.sprites.texture.width, world.sprites.texture.height);
         tileSize *= world.sprites.textureSize;
 
+        var roads = new PIXI.Graphics();
+        roads.beginFill(0xFFFFFF, 0.0);
+        roads.lineStyle(world.sprites.textureSize / 16, 0x9B870C, 1.0);
+
+        var places = new Object();
+        for (var i in resources.placesJson.data) {
+            var place = resources.placesJson.data[i];
+            places[place.id] = place;
+        }
+
         for (var i in resources.placesJson.data) {
             var sprite = new PIXI.Sprite(world.sprites.texture);
             var place = resources.placesJson.data[i];
             sprite.position.x = place.longitude * tileSize - world.sprites.textureSize / 2;
             // latitude is from south, Y is from screen top
             sprite.position.y = -place.latitude * tileSize - world.sprites.textureSize / 2;
+
+            // FIXME do not draw two times the same road
+            for (var i in place.roads) {
+                roads.moveTo(place.longitude * tileSize, -place.latitude * tileSize);
+                var to = places[place.roads[i]];
+                roads.lineTo(to.longitude * tileSize, -to.latitude * tileSize)
+            }
 
             camera.include(sprite.position.x, sprite.position.y);
             world.sprites.addChild(sprite);
@@ -59,6 +76,10 @@ function PixiMap(div, width, height) {
         circle.drawCircle(0, 0, world.sprites.textureSize);
         circle.endFill();
         world.selectionCircle = circle.generateTexture();
+
+        roads.endFill();
+        world.addChild(roads);
+        world.addChild(world.sprites);
 
         // setup events
         stage
