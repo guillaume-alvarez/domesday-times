@@ -105,7 +105,7 @@ class Command(BaseCommand):
                     overlord = get_lord(first(manor, 'teninchief', 'overlord66', 'lord86', 'lord66')[0])
                     settlements.append(Settlement(data_id=manor['id'], place=places[place_id],
                                                   head_of_manor=manor['headofmanor'],
-                                                  value=check(0.0, first, manor, 'value86', 'value66', 'valueqr', 'geld', 'villtax', 'millvalue', 'payments', 'burgesses'),
+                                                  value=settlement_value(manor),
                                                   lord=lord, overlord=overlord))
             except Exception as ex:
                 log.exception('Cannot load %s: %s', manor, ex)
@@ -207,6 +207,20 @@ def first(data, *fields):
                 if value:
                     return value
     raise Exception('No %s in %s' % (', '.join(fields), data))
+
+
+def settlement_value(manor):
+    try:
+        return first(manor, 'value86', 'value66', 'valueqr', 'geld', 'villtax', 'payments')
+    except:
+        value = 0.0
+        for key in ['lordsland', 'ploughlands', 'villagers', 'slaves', 'smallholders', 'femaleslaves', 'freemen', 'free2men', 'cottagers', 'otherpop', 'miscpop', 'burgesses', 'woodland', 'mills', 'millvalue', 'meadow', 'pasture', 'woodland', 'fisheries', 'salthouses', 'payments', 'churches', 'churchland', 'cobs_1086', 'cobs_1066', 'cattle_1086', 'cattle_1066', 'cows_1086', 'cows_1066', 'pigs_1086', 'pigs_1066', 'sheep_1086', 'sheep_1066', 'goats_1086', 'goats_1066', 'beehives_1086', 'beehives_1066', 'wild_mares_1086', 'wild_mares_1066']:
+            try:
+                value += int(manor[key] or 0.0)
+            except Exception as e:
+                log.debug(e)
+                pass
+        return value
 
 
 def get_lord(id):
