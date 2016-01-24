@@ -7,6 +7,8 @@ from .models import Place, Settlement
 
 # Serializers define the API representation.
 class SettlementSerializer(serializers.ModelSerializer):
+    lord = serializers.SlugRelatedField(read_only=True, slug_field='name')
+    overlord = serializers.SlugRelatedField(read_only=True, slug_field='name')
     class Meta:
         model = Settlement
         fields = '__all__'

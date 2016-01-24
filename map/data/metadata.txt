@@ -1,0 +1,18 @@
+https://hydra.hull.ac.uk/resources/hull:580
+
+General metadata for the databases
+Palmer, John
+Domesday; Domesday Book; Statistics
+
+Rights
+    Creative Commons Licence: Attribution-Noncommercial-Share Alike 2.0 UK: England and Wales. See: http://creativecommons.org/licenses/by-nc-sa/2.0/uk/
+Description
+
+    All significant Domesday statistics for each of the approximately 21,000 Domesday holdings. Data problems are annotated within the databases, and the structure and content of each database are described in separate documentation. 34 Statistics Notes - one per Domesday County - analyse the data and its problems for each county. This is the first publication of the electronic data.
+Publisher
+    The University of Hull
+Language
+    English
+Identifier
+    hull:580
+
