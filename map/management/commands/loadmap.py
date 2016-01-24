@@ -145,14 +145,23 @@ class Command(BaseCommand):
         self.stdout.write(self.style.SUCCESS('Computed %d roads from %d places.' % (len(segments), Place.objects.count())))
 
         segments_list = [tuple(iter(s)) for s in segments]
-        def distance(segment):
-            p0 = segment[0]
-            p1 = segment[1]
-            return (p0[0] - p1[0]) ** 2 + (p0[1] - p1[1]) ** 2
-        segments_list.sort(key=distance)
+        def filter_longer(l):
+            # recompute the links every time to avoid unconnected nodes
+            nb_links = {}
+            for s in l:
+                nb_links[s[0]] = nb_links.get(s[0], 0) + 1
+                nb_links[s[1]] = nb_links.get(s[1], 0) + 1
+            def distance(segment):
+                p0 = segment[0]
+                p1 = segment[1]
+                return ((p0[0] - p1[0]) ** 2 + (p0[1] - p1[1]) ** 2) * (2 ** min(nb_links[p0], nb_links[p1]))
+            l.sort(key=distance)
+            return l[:int(0.99 * float(len(l)))]
+        for _ in range(1,10):
+            segments_list = filter_longer(segments_list)
 
         roads = []
-        for s in segments_list[:int(0.985 * float(len(segments_list)))]:
+        for s in segments_list:
             p0 = points[s[0]]
             p1 = points[s[1]]
             roads.append(ThroughModel(from_place_id=p0.pk, to_place_id=p1.pk))
