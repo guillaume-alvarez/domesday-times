@@ -74,7 +74,7 @@ var SettlementsList = React.createClass({
 var Settlement = React.createClass({
     render: function() {
         var settlement = this.props.settlement;
-        var lord = settlement.head_of_manor || settlement.lord || settlement.overlord;
+        var lord = settlement.lord || settlement.overlord || settlement.head_of_manor;
         return (
             <p className="settlement">
                 <a target="_blank" href={'http://opendomesday.org/api/1.0/manor/'+settlement.data_id}>{lord}</a>: {settlement.value}£
