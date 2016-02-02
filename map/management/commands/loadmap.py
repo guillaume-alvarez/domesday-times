@@ -158,18 +158,27 @@ class Command(BaseCommand):
                 manor = data.data_as_dict()
                 place_id = str(manor['place'][0]['id'])
                 if place_id in places:
-                    lord = get_lord(manor, 'lord86', 'lord66', 'teninchief', 'overlord66')
-                    overlord = get_lord(manor, 'teninchief', 'overlord66', 'lord86', 'lord66')
-                    settlements.append(Settlement(data_id=manor['id'], place=places[place_id],
-                                                  head_of_manor=manor['headofmanor'],
-                                                  value=settlement_value(manor),
-                                                  lord=lord, overlord=overlord))
+                    value = settlement_value(manor)
+                    if value > 0.001:
+                        lord = get_lord(manor, 'lord86', 'lord66', 'teninchief', 'overlord66')
+                        overlord = get_lord(manor, 'teninchief', 'overlord66', 'lord86', 'lord66')
+                        settlements.append(Settlement(data_id=manor['id'], place=places[place_id],
+                                                      head_of_manor=manor['headofmanor'],
+                                                      value=value, lord=lord, overlord=overlord))
             except Exception as ex:
                 log.exception('Cannot load %s: %s', manor, ex)
                 # help debug by reporting it in console
                 traceback.print_exc(file=self.stderr)
         Settlement.objects.bulk_create(settlements)
         self.stdout.write(self.style.SUCCESS('Successfully loaded %d settlements.' % Settlement.objects.count()))
+
+    def remove_empty(self):
+        """Remove the empty/duplicate places, clean the settlements, etc."""
+        nb = Place.objects.filter(settlement=None).delete()
+        self.stdout.write(self.style.SUCCESS('Successfully deleted %d empty places.' % (nb[0])))
+
+        nb = Lord.objects.filter(settlement=None).delete()
+        self.stdout.write(self.style.SUCCESS('Successfully deleted %d poor lords.' % (nb[0])))
 
     def create_roads(self):
         """Compute the roads between the different places"""
@@ -230,6 +239,7 @@ class Command(BaseCommand):
         self.load_places()
         self.load_lords()
         self.load_settlements()
+        self.remove_empty()
         self.create_roads()
 
 
