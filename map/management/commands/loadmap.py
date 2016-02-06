@@ -24,6 +24,7 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         """Just call the actions required by user."""
         for action in options['actions'].split(','):
+            log.info('start %s', action)
             getattr(self, action)()
 
     def download_domesday(self):
@@ -151,6 +152,16 @@ class Command(BaseCommand):
         Settlement.objects.all().delete()
 
         places = {p.data_id: p for p in Place.objects.all()}
+        lords = {int(l.data_id): l for l in Lord.objects.all()}
+        def get_lord(manor, *fields):
+            id = int(first(manor, *fields)[0])
+            if id in lords:
+                return lords[id]
+            else:
+                log.warn('Could not find lord for %s for %s', id, manor)
+                lord = Lord(name=id, data_id=id)
+                lord.save()
+                return lord
 
         settlements = []
         for data in DomesdayData.objects.filter(type='manor'):
@@ -179,6 +190,33 @@ class Command(BaseCommand):
 
         nb = Lord.objects.filter(settlement=None).delete()
         self.stdout.write(self.style.SUCCESS('Successfully deleted %d poor lords.' % (nb[0])))
+
+        # merges places on same coordinates
+        points = {}
+        for place in Place.objects.all():
+            point = (float(place.longitude), float(place.latitude))
+            if point not in points:
+                points[point] = set([place])
+            else:
+                points[point].add(place)
+        for places in points.values():
+            if len(places) > 1:
+                def best_place(place):
+                    score = place.settlement_set.count()
+                    for s in place.settlement_set.all():
+                        if s.head_of_manor and (place.name in s.head_of_manor or s.head_of_manor in place.name):
+                            score += 1
+                    return score
+                l = list(places)
+                l.sort(key=best_place)
+                selected = l[-1]
+                for place in l[:-1]:
+                    log.info('Replace %s by %s.', place, selected)
+                    for s in place.settlement_set.all():
+                        selected.settlement_set.add(s)
+                    place.delete()
+                selected.save()
+
 
     def create_roads(self):
         """Compute the roads between the different places"""
@@ -288,18 +326,6 @@ def settlement_value(manor):
                 log.debug(e)
                 pass
         return value
-
-
-def get_lord(manor, *fields):
-    id = first(manor, *fields)[0]
-    lords = Lord.objects.filter(data_id=id)
-    if lords:
-        return lords[0]
-
-    log.warn('Could not find lord for %s for %s', id, manor)
-    lord = Lord(name=id, data_id=id)
-    lord.save()
-    return lord
 
 
 POINT = re.compile(r"POINT\s+\((-?\d+\.\d+)\s+(\d+\.\d+)\)")
