@@ -89,9 +89,9 @@ class Command(BaseCommand):
         # clean the content in DB
         Place.objects.all().delete()
 
-        counties = {c['id']: c['name'] for c in
+        counties = {c['id']: normalize_name(c['name']) for c in
                     map(DomesdayData.data_as_dict, DomesdayData.objects.filter(type='county'))}
-        hundreds = {h['id']: h['name'] for h in
+        hundreds = {h['id']: normalize_name(h['name']) for h in
                     map(DomesdayData.data_as_dict, DomesdayData.objects.filter(type='hundred'))}
         hundreds[None] = None
 
@@ -101,7 +101,7 @@ class Command(BaseCommand):
             data = p.data_as_dict()
             if not data['location']:
                 continue
-            place = Place(data_id=data['id'], name=data['vill'],
+            place = Place(data_id=data['id'], name=normalize_name(data['vill']),
                           county=counties[sub(data, 'county', 0, 'id')],
                           hundred=hundreds[sub(data, 'hundred', 0, 'id')])
             parse_coordinates(place, data['location'])
@@ -113,14 +113,6 @@ class Command(BaseCommand):
     def load_lords(self):
         import csv
         Lord.objects.all().delete()
-        TO_DELETE = re.compile('[' + re.escape('<>[]()') + ']')
-        COMMA = re.compile(r"(.+), (.+)")
-        def normalize_name(name):
-            name = TO_DELETE.sub('', name)
-            comma = COMMA.match(name)
-            if comma:
-                name = comma.group(2) + ' ' + comma.group(1)
-            return name
         lords = {}
         with open('map/data/Names.csv', newline='') as file:
             for lord in csv.DictReader(file, delimiter=';', quotechar='"'):
@@ -281,6 +273,16 @@ class Command(BaseCommand):
         self.create_roads()
 
 
+TO_DELETE = re.compile('[' + re.escape('<>[]()') + ']')
+COMMA = re.compile(r"(.+), (.+)")
+def normalize_name(name):
+    name = TO_DELETE.sub('', name)
+    comma = COMMA.match(name)
+    if comma:
+        name = comma.group(2) + ' ' + comma.group(1)
+    return name.replace(' -', '-').replace('- ', '-')
+
+
 def check(default, func, *args):
     try:
         return func(*args)
@@ -329,8 +331,6 @@ def settlement_value(manor):
 
 
 POINT = re.compile(r"POINT\s+\((-?\d+\.\d+)\s+(\d+\.\d+)\)")
-
-
 def parse_coordinates(place, location):
     '''
     Translate coordinates from web set to longitude/latitude.
