@@ -259,7 +259,7 @@ class Command(BaseCommand):
                 p1 = segment[1]
                 return ((p0[0] - p1[0]) ** 2 + (p0[1] - p1[1]) ** 2) * (2 ** min(nb_links[p0], nb_links[p1]))
             l.sort(key=distance)
-            return l[:int(0.99 * float(len(l)))]
+            return l[:int(0.995 * float(len(l)))]
         for _ in range(1,10):
             segments_list = filter_longer(segments_list)
 
