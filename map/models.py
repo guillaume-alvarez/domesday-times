@@ -50,6 +50,20 @@ class Settlement(models.Model):
     overlord = models.ForeignKey(Lord, related_name='+')
     value = models.DecimalField(decimal_places=2, max_digits=20)
 
+    BURGERS = 'B'
+    PEASANTS = 'P'
+    LORDS = 'L'
+    MONKS = 'M'
+    POPULATION_TYPES = (
+        (BURGERS, 'Burgers'),
+        (PEASANTS, 'Peasants'),
+        (LORDS, 'Lords'),
+        (MONKS, 'Monks'),
+    )
+    population_type = models.CharField(max_length=1,
+                                       choices=POPULATION_TYPES,
+                                       default=PEASANTS)
+
     def __str__(self):
         return self.place.name + '>' + str(self.head_of_manor) + '>' + self.lord.name + '>' + self.overlord.name
 

@@ -77,7 +77,7 @@ var Settlement = React.createClass({
         var lord = settlement.lord || settlement.overlord || settlement.head_of_manor;
         return (
             <p className="settlement">
-                <a target="_blank" href={'http://opendomesday.org/api/1.0/manor/'+settlement.data_id}>{lord}</a>: {settlement.value}£
+                <a target="_blank" href={'http://opendomesday.org/api/1.0/manor/'+settlement.data_id}>{lord} {settlement.population_type}</a>: {settlement.value}£
             </p>
         );
     }

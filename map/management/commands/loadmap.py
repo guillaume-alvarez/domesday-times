@@ -167,7 +167,8 @@ class Command(BaseCommand):
                         overlord = get_lord(manor, 'teninchief', 'overlord66', 'lord86', 'lord66')
                         settlements.append(Settlement(data_id=manor['id'], place=places[place_id],
                                                       head_of_manor=manor['headofmanor'],
-                                                      value=value, lord=lord, overlord=overlord))
+                                                      value=value, lord=lord, overlord=overlord,
+                                                      population_type=settlement_type(manor)))
             except Exception as ex:
                 log.exception('Cannot load %s: %s', manor, ex)
                 # help debug by reporting it in console
@@ -329,6 +330,22 @@ def settlement_value(manor):
                 pass
         return value
 
+TYPES = {
+    Settlement.BURGERS: ['burgesses','fisheries','salthouses'],
+    Settlement.LORDS: ['lordsland','slaves','femaleslaves'],
+    Settlement.PEASANTS: ['ploughlands', 'villagers','smallholders','freemen', 'free2men', 'cottagers'],
+    Settlement.MONKS: ['churches','churchland'],
+}
+def settlement_type(manor):
+    values = dict()
+    for type,fields in TYPES.items():
+        for field in fields:
+            try:
+                values[type] = values.get(type, 0.0) + float(manor[field] or 0.0)
+            except Exception as e:
+                log.debug(e)
+                pass
+    return max(values, key=values.get)
 
 POINT = re.compile(r"POINT\s+\((-?\d+\.\d+)\s+(\d+\.\d+)\)")
 def parse_coordinates(place, location):
