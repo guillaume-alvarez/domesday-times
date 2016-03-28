@@ -63,6 +63,7 @@ class Settlement(models.Model):
     population_type = models.CharField(max_length=1,
                                        choices=POPULATION_TYPES,
                                        default=PEASANTS)
+    population = models.IntegerField(default=0)
 
     def __str__(self):
         return self.place.name + '>' + str(self.head_of_manor) + '>' + self.lord.name + '>' + self.overlord.name

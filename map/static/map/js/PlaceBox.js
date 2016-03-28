@@ -78,7 +78,7 @@ var Settlement = React.createClass({
         return (
             <p className="settlement">
                 <a target="_blank" href={'http://opendomesday.org/api/1.0/manor/'+settlement.data_id}>{lord}</a>: {settlement.value}£
-                <br />({settlement.population_type})
+                <br />{settlement.population} {settlement.population_type.toLowerCase()}
             </p>
         );
     }

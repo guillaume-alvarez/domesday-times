@@ -168,7 +168,8 @@ class Command(BaseCommand):
                         settlements.append(Settlement(data_id=manor['id'], place=places[place_id],
                                                       head_of_manor=manor['headofmanor'],
                                                       value=value, lord=lord, overlord=overlord,
-                                                      population_type=settlement_type(manor)))
+                                                      population_type=settlement_type(manor),
+                                                      population=population(manor)))
             except Exception as ex:
                 log.exception('Cannot load %s: %s', manor, ex)
                 # help debug by reporting it in console
@@ -332,6 +333,18 @@ def settlement_value(manor):
                 log.debug(e)
                 pass
         return value
+
+
+def population(manor):
+    pop = 0
+    for key in ['villagers', 'slaves', 'smallholders', 'femaleslaves', 'freemen', 'free2men', 'cottagers', 'otherpop', 'miscpop', 'burgesses', 'priests']:
+        try:
+            pop += int(manor[key] or 0)
+        except Exception as e:
+            log.debug(e)
+            pass
+    return pop
+
 
 TYPES = {
     Settlement.BURGERS: ['burgesses','fisheries','salthouses'],
