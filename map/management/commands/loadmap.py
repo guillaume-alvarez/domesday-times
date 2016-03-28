@@ -184,12 +184,13 @@ class Command(BaseCommand):
         nb = Lord.objects.filter(settlement=None).delete()
         self.stdout.write(self.style.SUCCESS('Successfully deleted %d poor lords.' % (nb[0])))
 
+    def merge_places(self):
         # merges places on same coordinates
         points = {}
         for place in Place.objects.all():
             point = (float(place.longitude), float(place.latitude))
             if point not in points:
-                points[point] = set([place])
+                points[point] = {place}
             else:
                 points[point].add(place)
         for places in points.values():
@@ -271,6 +272,8 @@ class Command(BaseCommand):
         self.load_lords()
         self.load_settlements()
         self.remove_empty()
+        self.merge_places()
+        self.remove_empty()
         self.create_roads()
 
 
@@ -333,19 +336,32 @@ def settlement_value(manor):
 TYPES = {
     Settlement.BURGERS: ['burgesses','fisheries','salthouses'],
     Settlement.LORDS: ['lordsland','slaves','femaleslaves'],
-    Settlement.PEASANTS: ['ploughlands', 'villagers','smallholders','freemen', 'free2men', 'cottagers'],
-    Settlement.MONKS: ['churches','churchland'],
+    Settlement.PEASANTS: ['ploughlands','villagers','smallholders','freemen','free2men','cottagers'],
+    Settlement.MONKS: ['churches','churchland','priests'],
 }
 def settlement_type(manor):
-    values = dict()
-    for type,fields in TYPES.items():
-        for field in fields:
-            try:
-                values[type] = values.get(type, 0.0) + float(manor[field] or 0.0)
-            except Exception as e:
-                log.debug(e)
-                pass
-    return max(values, key=values.get)
+    def has(field):
+        try:
+            value = manor[field]
+            return value and (value is not 0.0)
+        except Exception:
+            return False
+    if has('burgesses'):
+        return Settlement.BURGERS
+    elif has('churchland'):
+        return Settlement.MONKS
+    elif has('lordsland') or has('lordsploughs'):
+        return Settlement.LORDS
+    else:
+        values = dict()
+        for type,fields in TYPES.items():
+            for field in fields:
+                try:
+                    values[type] = values.get(type, 0.0) + float(manor[field] or 0.0)
+                except Exception as e:
+                    log.debug(e)
+                    pass
+        return max(values, key=values.get)
 
 POINT = re.compile(r"POINT\s+\((-?\d+\.\d+)\s+(\d+\.\d+)\)")
 def parse_coordinates(place, location):

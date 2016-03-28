@@ -9,6 +9,7 @@ from .models import Place, Settlement
 class SettlementSerializer(serializers.ModelSerializer):
     lord = serializers.SlugRelatedField(read_only=True, slug_field='name')
     overlord = serializers.SlugRelatedField(read_only=True, slug_field='name')
+    population_type = serializers.CharField(source='get_population_type_display')
     class Meta:
         model = Settlement
         fields = '__all__'
