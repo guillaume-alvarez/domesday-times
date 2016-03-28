@@ -211,7 +211,7 @@ class Command(BaseCommand):
                         selected.settlement_set.add(s)
                     place.delete()
                 selected.save()
-
+        self.stdout.write(self.style.SUCCESS('Successfully merged to %d places.' % (Place.objects.count())))
 
     def create_roads(self):
         """Compute the roads between the different places"""
@@ -353,17 +353,23 @@ TYPES = {
     Settlement.MONKS: ['churches','churchland','priests'],
 }
 def settlement_type(manor):
-    def has(field):
+    def get(field):
         try:
             value = manor[field]
-            return value and (value is not 0.0)
+            if value:
+                return value
+            else:
+                return 0.0
         except Exception:
-            return False
+            return 0.0
+    def has(field):
+        return get(field) != 0.0
+
     if has('burgesses'):
         return Settlement.BURGERS
-    elif has('churchland'):
+    elif has('churchland') or has('priests'):
         return Settlement.MONKS
-    elif has('lordsland') or has('lordsploughs'):
+    elif has('lordsland') or (get('lordsploughs') != 0.0 and get('lordsploughs') >= get('mensploughs')):
         return Settlement.LORDS
     else:
         values = dict()

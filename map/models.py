@@ -41,6 +41,12 @@ class Place(models.Model):
     def __str__(self):
         return '%s (%f, %f)' % (self.name, self.latitude, self.longitude)
 
+    def main_settlement_type(self):
+        types = {}
+        for s in self.settlement_set.all():
+            types[s.population_type] = types.get(s.population_type, 0) + s.population
+        return Settlement.POPULATION_TYPES_DICT[max(types, key=types.get)]
+
 
 class Settlement(models.Model):
     data_id = models.CharField(max_length=128, db_index=True, unique=True)
@@ -60,6 +66,7 @@ class Settlement(models.Model):
         (LORDS, 'Lords'),
         (MONKS, 'Monks'),
     )
+    POPULATION_TYPES_DICT = dict(POPULATION_TYPES)
     population_type = models.CharField(max_length=1,
                                        choices=POPULATION_TYPES,
                                        default=PEASANTS)

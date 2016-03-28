@@ -44,7 +44,7 @@ var PlaceDesc = React.createClass({
 
         return (
             <div className="placeDesc">
-                <p><a target="_blank" href={'http://opendomesday.org/api/1.0/place/'+place.data_id}>{place.name}</a></p>
+                <p><a target="_blank" href={'http://opendomesday.org/api/1.0/place/'+place.data_id}>{place.name}</a> (mostly {place.type.toLowerCase()})</p>
                 <ul>
                     <li>{place.county} County</li>
                     <li>Hundred of {place.hundred}</li>
