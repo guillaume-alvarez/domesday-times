@@ -45,7 +45,10 @@ class Place(models.Model):
         types = {}
         for s in self.settlement_set.all():
             types[s.population_type] = types.get(s.population_type, 0) + s.population
-        return Settlement.POPULATION_TYPES_DICT[max(types, key=types.get)]
+        if types:
+            return Settlement.POPULATION_TYPES_DICT[max(types, key=types.get)]
+        else:
+            return Settlement.POPULATION_TYPES_DICT[Settlement.PEASANTS]
 
 
 class Settlement(models.Model):

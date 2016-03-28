@@ -23,13 +23,14 @@ function PixiMap(div, width, height) {
 
     PIXI.loader.reset();
     PIXI.loader
-        .add("villageImage", villageImagePath)
+        .add("iconsTileset", iconsImagePath)
         .add("placesJson", "/api/places.json")
         .load(setup);
 
     function setup(loader, resources) {
-        world.sprites.texture = resources.villageImage.texture;
-        world.sprites.textureSize = Math.max(world.sprites.texture.width, world.sprites.texture.height);
+        world.sprites.castle = new PIXI.Texture(resources.iconsTileset.texture.baseTexture, new PIXI.Rectangle(0, 0, 41, 41));
+        world.sprites.village = new PIXI.Texture(resources.iconsTileset.texture.baseTexture, new PIXI.Rectangle(0, 41, 41, 41));
+        world.sprites.textureSize = 41;
         tileSize *= world.sprites.textureSize;
 
         var roads = new PIXI.Graphics();
@@ -43,8 +44,13 @@ function PixiMap(div, width, height) {
         }
 
         for (var i in resources.placesJson.data) {
-            var sprite = new PIXI.Sprite(world.sprites.texture);
             var place = resources.placesJson.data[i];
+            var sprite;
+            if (place.type == 'Lords') {
+                sprite = new PIXI.Sprite(world.sprites.castle);
+            } else {
+                sprite = new PIXI.Sprite(world.sprites.village);
+            }
             sprite.position.x = place.longitude * tileSize - world.sprites.textureSize / 2;
             // latitude is from south, Y is from screen top
             sprite.position.y = -place.latitude * tileSize - world.sprites.textureSize / 2;
