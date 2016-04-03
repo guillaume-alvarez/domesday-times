@@ -267,16 +267,19 @@ class Command(BaseCommand):
         ThroughModel.objects.bulk_create(roads)
         self.stdout.write(self.style.SUCCESS('Stored %d roads items in DB.' % ThroughModel.objects.count()))
 
-    def all(self):
-        self.download_domesday()
+    def local(self):
         self.load_places()
         self.load_lords()
         self.load_settlements()
         self.remove_empty()
         self.merge_places()
+        # just to be sure no empty place remains...
         self.remove_empty()
         self.create_roads()
 
+    def all(self):
+        self.download_domesday()
+        self.local()
 
 TO_DELETE = re.compile('[' + re.escape('<>[]()') + ']')
 COMMA = re.compile(r"(.+), (.+)")
