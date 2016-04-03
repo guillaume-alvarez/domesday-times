@@ -12,7 +12,8 @@ function PixiMap(div, width, height) {
     var world = new PIXI.Container();
     world.sprites = new PIXI.ParticleContainer(200000);
     var camera = new Camera();
-    var tileSize = 100.0;
+    var INIT_TILE_SIZE = 100.0
+    var tileSize = INIT_TILE_SIZE;
 
     //Add the canvas to the HTML document
     div.appendChild(renderer.view);
@@ -140,7 +141,7 @@ function PixiMap(div, width, height) {
         var pos = event.data.getLocalPosition(world);
         pos.x = pos.x / tileSize;
         pos.y = -pos.y / tileSize;
-        var minDist = Number.MAX_VALUE;
+        var minDist = Math.pow(2 / INIT_TILE_SIZE, 2);
         var minPlace;
         function distance(pos, place) {
             return Math.pow(place.latitude - pos.y, 2) + Math.pow(place.longitude - pos.x, 2);
@@ -155,7 +156,7 @@ function PixiMap(div, width, height) {
             }
         }
 
-        if (!minPlace || Math.sqrt(minDist) > 0.2) {
+        if (!minPlace) {
             console.log("Nothing selected, clicked at " + JSON.stringify(pos, null, 4));
             if (world.selectionSprite) {
                 world.removeChild(world.selectionSprite);
