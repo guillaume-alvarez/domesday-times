@@ -180,10 +180,10 @@ class Command(BaseCommand):
     def remove_empty(self):
         """Remove the empty/duplicate places, clean the settlements, etc."""
         nb = Place.objects.filter(settlement=None).delete()
-        self.stdout.write(self.style.SUCCESS('Successfully deleted %d empty places.' % (nb[0])))
+        self.stdout.write(self.style.SUCCESS('Successfully deleted %d empty places.' % (nb[1]['map.Place'])))
 
         nb = Lord.objects.filter(settlement=None).delete()
-        self.stdout.write(self.style.SUCCESS('Successfully deleted %d poor lords.' % (nb[0])))
+        self.stdout.write(self.style.SUCCESS('Successfully deleted %d poor lords.' % (nb[1]['map.Lord'])))
 
     def merge_places(self):
         # merges places on same coordinates
@@ -281,7 +281,7 @@ class Command(BaseCommand):
         self.download_domesday()
         self.local()
 
-TO_DELETE = re.compile('[' + re.escape('<>[]()') + ']')
+TO_DELETE = re.compile('[' + re.escape('<>[](){}?') + ']')
 COMMA = re.compile(r"(.+), (.+)")
 def normalize_name(name):
     name = TO_DELETE.sub('', name)
