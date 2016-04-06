@@ -51,7 +51,7 @@ def search_places(request):
         for place in places:
             place_json = dict(
                 id=place.id,
-                label=place.name,
+                label=place.name + ' (' + place.county + ')',
                 value=place.name,
             )
             results.append(place_json)

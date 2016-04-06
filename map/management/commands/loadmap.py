@@ -96,7 +96,7 @@ class Command(BaseCommand):
         hundreds[None] = None
 
         # then create the places in DB from web data
-        places = []
+        places = {}
         for p in DomesdayData.objects.filter(type='place'):
             data = p.data_as_dict()
             if not data['location']:
@@ -105,8 +105,11 @@ class Command(BaseCommand):
                           county=counties[sub(data, 'county', 0, 'id')],
                           hundred=hundreds[sub(data, 'hundred', 0, 'id')])
             parse_coordinates(place, data['location'])
-            places.append(place)
-        Place.objects.bulk_create(places)
+
+            if place.name in places:
+                place.name = place.name + ' in ' + place.county
+            places[place.name] = place
+        Place.objects.bulk_create(places.values())
 
         self.stdout.write(self.style.SUCCESS('Successfully loaded %d places.' % Place.objects.count()))
 

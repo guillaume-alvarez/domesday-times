@@ -31,7 +31,7 @@ class Lord(models.Model):
 
 class Place(models.Model):
     data_id = models.CharField(max_length=128, db_index=True, unique=True)
-    name = models.CharField(max_length=128)
+    name = models.CharField(max_length=128, db_index=True, unique=True)
     county = models.CharField(max_length=128)
     hundred = models.CharField(max_length=128, null=True)
     longitude = models.DecimalField(decimal_places=10, max_digits=20)
