@@ -111,7 +111,7 @@ function PixiMap(div, width, height) {
         // reverse Firefox’s detail value
         var delta = e.wheelDelta || -e.detail;
         var pos = stage.toLocal(renderer.plugins.interaction.mouse.global)
-        camera.zoom(0.1 * delta, pos.x, pos.y);
+        camera.zoomTo(0.1 * delta, pos.x, pos.y);
     }
 
     function onDragStart(event) {
@@ -119,6 +119,8 @@ function PixiMap(div, width, height) {
         // the reason for this is because of multitouch
         // we want to track the movement of this particular touch
         world.dragStart = event.data.getLocalPosition(stage);
+        // memorize original world position because using only delta often cause
+        // approximations when there is any lag in the browser
         world.dragStart.x -= world.position.x;
         world.dragStart.y -= world.position.y;
         world.dragging = true;
@@ -133,7 +135,7 @@ function PixiMap(div, width, height) {
     function onDragMove(event) {
         if (world.dragging) {
             var newPosition = event.data.getLocalPosition(stage);
-            camera.drag(newPosition.x - world.dragStart.x, newPosition.y - world.dragStart.y);
+            camera.dragTo(newPosition.x - world.dragStart.x, newPosition.y - world.dragStart.y);
         }
     }
 
@@ -180,6 +182,7 @@ function PixiMap(div, width, height) {
         Actions.selectPlace(place.id);
     }
 
+    // public function used from react components
     this.selectPlace = function (name) {
         var places = PIXI.loader.resources.placesJson;
         for (var i in places.data) {
@@ -194,15 +197,14 @@ function PixiMap(div, width, height) {
                 world.selectionSprite.position.y = -place.latitude * tileSize - world.sprites.textureSize;
                 world.addChild(world.selectionSprite);
 
-                camera.drag(place.longitude * tileSize, -place.latitude * tileSize)
-                renderer.render(stage);
+                camera.centerTo(place.longitude * tileSize, -place.latitude * tileSize)
 
                 Actions.selectPlace(place.id);
                 return;
             }
         }
 
-        console.log("Nothing selected, from name '" + name + "'");
+        console.log("Nothing selected from name '" + name + "'");
         if (world.selectionSprite) {
             world.removeChild(world.selectionSprite);
             world.selectionSprite = null;
@@ -211,7 +213,4 @@ function PixiMap(div, width, height) {
         return;
     }
 
-}
-
-PixiMap.prototype.selectPlace = function (name) {
 }

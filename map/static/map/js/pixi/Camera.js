@@ -36,7 +36,7 @@ Camera.prototype.init = function(renderer, viewport, stage) {
     this.renderer.render(stage);
 };
 
-Camera.prototype.zoom = function(delta, x, y) {
+Camera.prototype.zoomTo = function(delta, x, y) {
     // compute the position indicated by user with old scale
     var worldPos = {
         x: (x - this.viewport.position.x)/this.scale,
@@ -58,8 +58,19 @@ Camera.prototype.zoom = function(delta, x, y) {
     this.renderer.render(this.stage);
 };
 
-Camera.prototype.drag = function(x, y) {
+Camera.prototype.dragTo = function(x, y) {
     this.viewport.position.x = x;
     this.viewport.position.y = y;
+    this.renderer.render(this.stage);
+};
+
+/**
+ * Center the camera on some world coordinates.
+ */
+Camera.prototype.centerTo = function(x, y) {
+    var center = this.viewport.toLocal(new PIXI.Point(this.renderer.width / 2, this.renderer.height / 2));
+
+    this.viewport.position.x += (center.x - x) * this.scale;
+    this.viewport.position.y += (center.y - y) * this.scale;
     this.renderer.render(this.stage);
 };
