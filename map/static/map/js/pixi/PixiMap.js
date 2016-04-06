@@ -180,4 +180,38 @@ function PixiMap(div, width, height) {
         Actions.selectPlace(place.id);
     }
 
+    this.selectPlace = function (name) {
+        var places = PIXI.loader.resources.placesJson;
+        for (var i in places.data) {
+            var place = places.data[i];
+            if (name == place.name) {
+                console.log("selected " + JSON.stringify(place, null, 4));
+
+                if (world.selectionSprite) world.removeChild(world.selectionSprite);
+
+                world.selectionSprite = new PIXI.Sprite(world.selectionCircle);
+                world.selectionSprite.position.x = place.longitude * tileSize - world.sprites.textureSize;
+                world.selectionSprite.position.y = -place.latitude * tileSize - world.sprites.textureSize;
+                world.addChild(world.selectionSprite);
+
+                camera.drag(place.longitude * tileSize, -place.latitude * tileSize)
+                renderer.render(stage);
+
+                Actions.selectPlace(place.id);
+                return;
+            }
+        }
+
+        console.log("Nothing selected, from name '" + name + "'");
+        if (world.selectionSprite) {
+            world.removeChild(world.selectionSprite);
+            world.selectionSprite = null;
+            renderer.render(stage);
+        }
+        return;
+    }
+
+}
+
+PixiMap.prototype.selectPlace = function (name) {
 }

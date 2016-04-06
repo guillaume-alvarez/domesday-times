@@ -1,8 +1,9 @@
 from django.shortcuts import render, redirect
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 from django.core import serializers
 
 import logging
+import json
 
 from .models import Place
 
@@ -40,3 +41,20 @@ def map_table(request):
 
 def map_pixi(request):
     return render(request, 'map/pixi.html')
+
+
+def search_places(request):
+    if request.is_ajax():
+        q = request.GET.get('term', '')
+        places = Place.objects.filter(name__icontains=q).order_by('name')[:20]
+        results = []
+        for place in places:
+            place_json = dict(
+                id=place.id,
+                label=place.name,
+                value=place.name,
+            )
+            results.append(place_json)
+        return JsonResponse(results, safe=False)
+    else:
+        return HttpResponse('fail', 'application/json')

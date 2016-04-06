@@ -20,7 +20,7 @@ class PlaceSerializer(serializers.ModelSerializer):
     type = serializers.CharField(source='main_settlement_type')
     class Meta:
         model = Place
-        fields = ('id', 'longitude', 'latitude', 'roads', 'type')
+        fields = ('id', 'longitude', 'latitude', 'roads', 'type', 'name')
 
 
 class PlaceDetailSerializer(serializers.ModelSerializer):
