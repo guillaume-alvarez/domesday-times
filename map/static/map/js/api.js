@@ -43,6 +43,7 @@ function get(url) {
     return superagent
         .get(url)
         .set('Accept', 'application/json')
+        .set('Accept-Encoding', 'gzip, deflate')
         .timeout(TIMEOUT)
         .query();
 }
