@@ -44,7 +44,10 @@ var PlaceDesc = React.createClass({
 
         return (
             <div className="placeDesc">
-                <p><a target="_blank" href={'http://opendomesday.org/api/1.0/place/'+place.data_id}>{place.name}</a> (mostly {place.type.toLowerCase()})</p>
+                <p>{place.name} (mostly {place.type.toLowerCase()})</p>
+                <a target="_blank" href='http://opendomesday.org/api/1.0/place/'+place.data_id}>
+                    <span className="glyphicon glyphicon-link" aria-hidden="true"></span>
+                </a>
                 <ul>
                     <li>{place.county} County</li>
                     <li>Hundred of {place.hundred}</li>
@@ -77,7 +80,10 @@ var Settlement = React.createClass({
         var lord = settlement.lord || settlement.overlord || settlement.head_of_manor;
         return (
             <p className="settlement">
-                <a target="_blank" href={'http://opendomesday.org/api/1.0/manor/'+settlement.data_id}>{lord}</a>: {settlement.value}£
+                {lord}: {settlement.value}£
+                <a target="_blank" href={'http://opendomesday.org/api/1.0/manor/'+settlement.data_id}>
+                    <span className="glyphicon glyphicon-link" aria-hidden="true"></span>
+                </a>
                 <br />{settlement.population} {settlement.population_type.toLowerCase()}
             </p>
         );
