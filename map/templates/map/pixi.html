@@ -28,7 +28,10 @@
 </head>
 
 <body>
-    <div id="place" class="col-md-2"></div>
+    <div class="col-md-2">
+        <div id="place"></div>
+        <div id="lord"></div>
+    </div>
     <div id="map" class="col-md-10"></div>
 
     <!-- Set some values using django template to be used in JS code-->
@@ -43,11 +46,13 @@
     <script type="text/javascript" src="{% static 'map/js/Api.js' %}"></script>
     <script type="text/javascript" src="{% static 'map/js/stores/Store.js' %}"></script>
     <script type="text/javascript" src="{% static 'map/js/stores/PlacesStore.js' %}"></script>
+    <script type="text/javascript" src="{% static 'map/js/stores/LordsStore.js' %}"></script>
 
     <script type="text/javascript" src="{% static 'map/js/pixi/Camera.js' %}"></script>
     <script type="text/javascript" src="{% static 'map/js/pixi/PixiMap.js' %}"></script>
     <!-- babel will convert jsx from react files to standard js-->
     <script type="text/babel" src="{% static 'map/js/MapBox.js' %}"></script>
     <script type="text/babel" src="{% static 'map/js/PlaceBox.js' %}"></script>
+    <script type="text/babel" src="{% static 'map/js/LordBox.js' %}"></script>
 </body>
 </html>
