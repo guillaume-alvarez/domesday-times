@@ -372,11 +372,11 @@ def settlement_type(manor):
         return get(field) != 0.0
 
     if has('burgesses'):
-        return Settlement.BURGERS
+        return BURGERS
     elif has('churchland') or has('priests'):
-        return Settlement.MONKS
+        return MONKS
     elif has('lordsland') or (get('lordsploughs') != 0.0 and get('lordsploughs') >= get('mensploughs')):
-        return Settlement.LORDS
+        return KNIGHTS
     else:
         values = dict()
         for type,fields in TYPES.items():
