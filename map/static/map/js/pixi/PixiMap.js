@@ -47,7 +47,7 @@ function PixiMap(div, width, height) {
         for (var i in resources.placesJson.data) {
             var place = resources.placesJson.data[i];
             var sprite;
-            if (place.type == 'Lords') {
+            if (place.type == 'Knights') {
                 sprite = new PIXI.Sprite(world.sprites.castle);
             } else {
                 sprite = new PIXI.Sprite(world.sprites.village);

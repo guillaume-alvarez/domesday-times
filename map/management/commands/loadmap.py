@@ -353,10 +353,10 @@ def population(manor):
 
 
 TYPES = {
-    Settlement.BURGERS: ['burgesses','fisheries','salthouses'],
-    Settlement.LORDS: ['lordsland','slaves','femaleslaves'],
-    Settlement.PEASANTS: ['ploughlands','villagers','smallholders','freemen','free2men','cottagers'],
-    Settlement.MONKS: ['churches','churchland','priests'],
+    BURGERS: ['burgesses','fisheries','salthouses'],
+    KNIGHTS: ['lordsland','slaves','femaleslaves'],
+    PEASANTS: ['ploughlands','villagers','smallholders','freemen','free2men','cottagers'],
+    MONKS: ['churches','churchland','priests'],
 }
 def settlement_type(manor):
     def get(field):

@@ -1,5 +1,18 @@
 from django.db import models
 
+BURGERS = 'B'
+PEASANTS = 'P'
+KNIGHTS = 'L'
+MONKS = 'M'
+POPULATION_TYPES = (
+    (BURGERS, 'Burgers'),
+    (PEASANTS, 'Peasants'),
+    (KNIGHTS, 'Knights'),
+    (MONKS, 'Monks'),
+)
+POPULATION_TYPES_DICT = dict(POPULATION_TYPES)
+
+
 # Create your models here.
 
 
@@ -46,9 +59,9 @@ class Place(models.Model):
         for s in self.settlement_set.all():
             types[s.population_type] = types.get(s.population_type, 0) + s.population
         if types:
-            return Settlement.POPULATION_TYPES_DICT[max(types, key=types.get)]
+            return POPULATION_TYPES_DICT[max(types, key=types.get)]
         else:
-            return Settlement.POPULATION_TYPES_DICT[Settlement.PEASANTS]
+            return POPULATION_TYPES_DICT[PEASANTS]
 
 
 class Settlement(models.Model):
@@ -59,17 +72,6 @@ class Settlement(models.Model):
     overlord = models.ForeignKey(Lord, related_name='+')
     value = models.DecimalField(decimal_places=2, max_digits=20)
 
-    BURGERS = 'B'
-    PEASANTS = 'P'
-    LORDS = 'L'
-    MONKS = 'M'
-    POPULATION_TYPES = (
-        (BURGERS, 'Burgers'),
-        (PEASANTS, 'Peasants'),
-        (LORDS, 'Lords'),
-        (MONKS, 'Monks'),
-    )
-    POPULATION_TYPES_DICT = dict(POPULATION_TYPES)
     population_type = models.CharField(max_length=1,
                                        choices=POPULATION_TYPES,
                                        default=PEASANTS)
