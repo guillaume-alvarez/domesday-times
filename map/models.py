@@ -66,10 +66,10 @@ class Place(models.Model):
 
 class Settlement(models.Model):
     data_id = models.CharField(max_length=128, db_index=True, unique=True)
-    place = models.ForeignKey(Place)
+    place = models.ForeignKey(Place, on_delete=models.CASCADE)
     head_of_manor = models.CharField(max_length=128, null=True)
-    lord = models.ForeignKey(Lord)
-    overlord = models.ForeignKey(Lord, related_name='+')
+    lord = models.ForeignKey(Lord, on_delete=models.CASCADE)
+    overlord = models.ForeignKey(Lord, related_name='+', on_delete=models.CASCADE)
     value = models.DecimalField(decimal_places=2, max_digits=20)
 
     population_type = models.CharField(max_length=1,

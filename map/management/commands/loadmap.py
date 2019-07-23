@@ -156,6 +156,7 @@ class Command(BaseCommand):
                 log.warn('Could not find lord for %s for %s', id, manor)
                 lord = Lord(name=id, data_id=id)
                 lord.save()
+                lords[id] = lord
                 return lord
 
         settlements = []
@@ -388,12 +389,12 @@ def settlement_type(manor):
                     pass
         return max(values, key=values.get)
 
-POINT = re.compile(r"POINT\s+\((-?\d+\.\d+)\s+(\d+\.\d+)\)")
+POINT = re.compile(r".*POINT\s+\((-?\d+\.\d+)\s+(\d+\.\d+)\)")
 def parse_coordinates(place, location):
     '''
     Translate coordinates from web set to longitude/latitude.
     :param place: a Place object to enrich with coordinates
-    :param location: "POINT (1.0322657208099999 52.5630827919000012)"
+    :param location: "SRID=1235;POINT (1.0322657208099999 52.5630827919000012)"
     '''
     m = POINT.match(location)
     place.longitude = float(m.group(1))
@@ -404,16 +405,20 @@ def download(urls, action, json=True):
     """retrieve data from endpoints added to base url"""
     log.info('Will load %s', ', '.join(urls))
     loop = asyncio.get_event_loop()
-    session = aiohttp.ClientSession(loop=loop)
-    max_requests = asyncio.Semaphore(20)
+
+    async def create_session():
+        return aiohttp.ClientSession(loop=loop)
+    session = asyncio.get_event_loop().run_until_complete(create_session())
+
+    max_requests = asyncio.Semaphore(5)
     results = []
 
     async def load(url, json):
-        log.debug('Load data from %s ...', url)
-        while True:
+        while True:  # to retry in case of disconnection
             async with max_requests:
+                log.info('Load data from %s ...', url)
                 try:
-                    async with session.get(url, compress=True) as resp:
+                    async with session.get(url) as resp:
                         try:
                             if resp.status != 200:
                                 raise Exception('Error %d' % resp.status)
@@ -422,7 +427,7 @@ def download(urls, action, json=True):
                             else:
                                 data = await resp.read()
                             results.extend(action(data, url))
-                            log.debug('...loaded data from %s', url)
+                            log.info('...loaded data from %s', url)
                             break
                         except Exception as ex:
                             log.exception('Cannot load %s: %s', url, ex)
@@ -435,6 +440,6 @@ def download(urls, action, json=True):
                         log.warning('Failure to get %s: %s, will retry', url, repr(get_ex))
                         continue
     loop.run_until_complete(asyncio.wait([load(url, json) for url in urls]))
-    session.close()
+    loop.run_until_complete(session.close())
     log.info('Loaded %d items.', len(results))
     return results

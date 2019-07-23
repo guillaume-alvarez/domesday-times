@@ -71,9 +71,9 @@ class LordViewset(viewsets.ReadOnlyModelViewSet):
 
 # Routers provide an easy way of automatically determining the URL conf.
 router = routers.DefaultRouter()
-router.register(r'places', PlaceViewset, base_name='place')
-router.register(r'settlements', SettlementViewset, base_name='settlement')
-router.register(r'lords', LordViewset, base_name='lord')
+router.register(r'places', PlaceViewset, basename='place')
+router.register(r'settlements', SettlementViewset, basename='settlement')
+router.register(r'lords', LordViewset, basename='lord')
 
 # Wire up our API using automatic URL routing.
 urlpatterns = [
