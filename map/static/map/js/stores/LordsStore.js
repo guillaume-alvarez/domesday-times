@@ -30,6 +30,9 @@ LordsStore.prototype.handle = function (event) {
             console.log('Loaded lord ' + JSON.stringify(event.response, null, 4));
             LORDS_STORE._lords[event.response.id] = event.response;
             break;
+        case Actions.ACTION_SELECT_PLACE:
+            LORDS_STORE._selectedId = undefined;
+            break;
         default:
             return true;
     }
