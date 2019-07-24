@@ -7,3 +7,7 @@ Current display idea is to propose a React/Flux interface with
  * informative React components, on places, lords, etc.
  * bootstrap css with a navbar allowing to go into admin views
  * django server backend
+
+It is possible to execute the following commands to avoid reloading all data from OpenDomesday website:
+ * python manage.py loaddata map_DomesdayData.json
+ * python manage.py loadmap --actions local
