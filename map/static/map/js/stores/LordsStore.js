@@ -31,6 +31,7 @@ LordsStore.prototype.handle = function (event) {
             LORDS_STORE._lords[event.response.id] = event.response;
             break;
         case Actions.ACTION_SELECT_PLACE:
+            // do not apply for 'SELECT_SETTLEMENT': keeps the same lord
             LORDS_STORE._selectedId = undefined;
             break;
         default:

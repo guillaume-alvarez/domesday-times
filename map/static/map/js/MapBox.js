@@ -3,11 +3,27 @@
  */
 var MapBox = React.createClass({
     componentDidMount: function() {
-        this.setState({map: new PixiMap(this.refs.gameCanvas, 1366, 768)});
+        AppDispatcher.register(this.handleEvent);
+        this.setState({
+            map: new PixiMap(this.refs.gameCanvas, 1366, 768),
+        });
+    },
+
+    handleEvent: function(event) {
+        switch(event.actionType) {
+            case Actions.ACTION_SELECT_SETTLEMENT:
+                this.state.map.selectPlace(event.settlement.place_name);
+                return true;
+            default:
+                return true;
+        }
     },
     handleSubmit: function(e) {
         e.preventDefault();
-        this.state.map.selectPlace($("#searchPlaceText").val());
+        place = this.state.map.selectPlace($("#searchPlaceText").val());
+        if (place) {
+            Actions.selectPlace(place.id);
+        }
         return false;
     },
     render: function() {

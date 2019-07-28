@@ -57,11 +57,15 @@ var LordSettlementsList = React.createClass({
 });
 
 var LordSettlement = React.createClass({
+    handleClick: function (event) {
+        var settlement = this.props.settlement;
+        Actions.selectSettlement(settlement)
+    },
     render: function() {
         var settlement = this.props.settlement;
         var lord = settlement.lord || settlement.overlord || settlement.head_of_manor;
         return (
-            <p className="lordSettlement">
+            <p className="lordSettlement" onClick={this.handleClick}>
                 {settlement.place_name}: {settlement.value}£
                 <a target="_blank" href={'http://opendomesday.org/api/1.0/manor/'+settlement.data_id} className="pull-right">
                     <span className="glyphicon glyphicon-link" aria-hidden="true"></span>

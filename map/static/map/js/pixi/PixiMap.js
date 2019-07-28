@@ -199,8 +199,7 @@ function PixiMap(div, width, height) {
 
                 camera.centerTo(place.longitude * tileSize, -place.latitude * tileSize)
 
-                Actions.selectPlace(place.id);
-                return;
+                return place;
             }
         }
 
@@ -210,7 +209,7 @@ function PixiMap(div, width, height) {
             world.selectionSprite = null;
             renderer.render(stage);
         }
-        return;
+        return null;
     }
 
 }

@@ -30,6 +30,13 @@ PlacesStore.prototype.handle = function (event) {
             console.log('Loaded place ' + JSON.stringify(event.response, null, 4));
             PLACES_STORE._places[event.response.id] = event.response;
             break;
+        case Actions.ACTION_SELECT_SETTLEMENT:
+            PLACES_STORE._selectedId = event.settlement.place;
+            if (!(PLACES_STORE._selectedId in PLACES_STORE._places)) {
+                Api.getData('places', event.settlement.place, Actions.ACTION_GET_PLACE, {});
+                return true;
+            }
+            break;
         default:
             return true;
     }
