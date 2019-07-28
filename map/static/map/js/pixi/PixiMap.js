@@ -4,11 +4,13 @@
  */
 function PixiMap(div, width, height) {
     //Create the renderer
-    var renderer = PIXI.autoDetectRenderer(width, height);
+    var renderer = PIXI.autoDetectRenderer({ width: width, height: height, transparent: false });
     renderer.backgroundColor = 0x061639;
 
     var stage = new PIXI.Container();
     stage.interactive = true;
+    stage.interactiveChildren = false;
+    stage.hitArea = new PIXI.Rectangle(0, 0, width, height);
     var world = new PIXI.Container();
     world.sprites = new PIXI.ParticleContainer(200000);
     var camera = new Camera();
@@ -22,8 +24,8 @@ function PixiMap(div, width, height) {
     // Firefox
     renderer.view.addEventListener("DOMMouseScroll", mouseWheelHandler, false);
 
-    PIXI.loader.reset();
-    PIXI.loader
+    PIXI.Loader.shared.reset();
+    PIXI.Loader.shared
         .add("iconsTileset", iconsImagePath)
         .add("placesJson", "/api/places.json")
         .load(setup);
@@ -82,7 +84,7 @@ function PixiMap(div, width, height) {
         circle.lineStyle(world.sprites.textureSize / 8, 0x66FF66, 1.0);
         circle.drawCircle(0, 0, world.sprites.textureSize);
         circle.endFill();
-        world.selectionCircle = circle.generateTexture();
+        world.selectionCircle = renderer.generateTexture(circle);
 
         roads.endFill();
         world.addChild(roads);
@@ -99,10 +101,9 @@ function PixiMap(div, width, height) {
             .on('touchend', onDragEnd)
             .on('touchendoutside', onDragEnd)
             // events for drag move
-            .on('mousemove', onDragMove)
-            .on('touchmove', onDragMove)
+            .on('pointermove', onDragMove)
             // events for user click on map
-            .on('mousedown', onSelect);
+            .on('pointerdown', onSelect);
 
         camera.init(renderer, world, stage);
     }
@@ -143,12 +144,13 @@ function PixiMap(div, width, height) {
         var pos = event.data.getLocalPosition(world);
         pos.x = pos.x / tileSize;
         pos.y = -pos.y / tileSize;
+        console.log('onSelect ' + pos);
         var minDist = Math.pow(2 / INIT_TILE_SIZE, 2);
         var minPlace;
         function distance(pos, place) {
             return Math.pow(place.latitude - pos.y, 2) + Math.pow(place.longitude - pos.x, 2);
         }
-        var places = PIXI.loader.resources.placesJson;
+        var places = PIXI.Loader.shared.resources.placesJson;
         for (var i in places.data) {
             var place = places.data[i];
             var dist = distance(pos, place);
@@ -184,7 +186,7 @@ function PixiMap(div, width, height) {
 
     // public function used from react components
     this.selectPlace = function (name) {
-        var places = PIXI.loader.resources.placesJson;
+        var places = PIXI.Loader.shared.resources.placesJson;
         for (var i in places.data) {
             var place = places.data[i];
             if (name == place.name) {
