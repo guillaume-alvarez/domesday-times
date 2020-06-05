@@ -1,6 +1,6 @@
 ﻿aiohttp==3.5.4
 beautifulsoup4==4.8.0
-Django==2.2.10
+Django==2.2.13
 django-filter==2.2.0
 djangorestframework==3.10.1
 django-extensions==2.2.1
