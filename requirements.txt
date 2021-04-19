@@ -1,4 +1,4 @@
-﻿aiohttp==3.5.4
+﻿aiohttp==3.7.4
 beautifulsoup4==4.8.0
 Django==2.2.20
 django-filter==2.2.0
